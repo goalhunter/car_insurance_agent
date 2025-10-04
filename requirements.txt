@@ -1,0 +1,8 @@
+# AWS SDK for Python
+boto3>=1.34.0
+
+# Data manipulation
+pandas>=2.0.0
+
+# AWS CLI (optional, for aws configure)
+awscli>=1.32.0

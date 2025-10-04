@@ -2,8 +2,12 @@ import boto3
 import json
 import pandas as pd
 import re
+from decimal import Decimal
 
 def generate_insurance_data():
+    """Generate synthetic insurance data using Bedrock"""
+    print("Generating synthetic insurance data using Bedrock...")
+
     # Initialize the Bedrock client using AWS CLI configured credentials
     bedrock_runtime = boto3.client(
         service_name="bedrock-runtime",
@@ -73,7 +77,7 @@ def generate_insurance_data():
 
         CRITICAL REQUIREMENTS:
         - Generate EXACTLY 5 records for each table
-        
+
         OUTPUT FORMAT:
         Return ONLY a valid JSON object with this exact structure:
         {
@@ -93,7 +97,7 @@ def generate_insurance_data():
         "temperature": 0.1,
         "messages": [
             {
-                "role": "user", 
+                "role": "user",
                 "content": prompt + "\n\nIMPORTANT: Your response must contain ONLY valid JSON, starting with { and ending with }. No markdown, no explanations."
             }
         ]
@@ -105,110 +109,114 @@ def generate_insurance_data():
             modelId="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
             body=body
         )
-        
+
         # Process the response
         response_body = json.loads(response.get("body").read())
         generated_text = response_body.get("content")[0].get("text")
-        
-        # Save the raw response first for reference
-        with open('raw_response.txt', 'w') as f:
-            f.write(generated_text)
-            
-        print("Saved raw response to raw_response.txt")
-        
-        # Try to extract the JSON data using regex to find the outermost JSON object
+
+        # Extract JSON using regex
         json_pattern = r'(?s)\{.*\}'
         match = re.search(json_pattern, generated_text)
-        
+
         if match:
             json_str = match.group(0)
-            
-            # Try to parse the JSON
-            try:
-                data = json.loads(json_str)
-                
-                # Save the data to a file
-                with open('insurance_data.json', 'w') as f:
-                    json.dump(data, f, indent=2)
-                
-                print(f"Successfully generated and saved insurance data to insurance_data.json")
-                
-                # Save individual tables to CSV
-                for table_name in ['policies', 'customers', 'vehicles', 'coverages']:
-                    if table_name in data:
-                        df = pd.DataFrame(data[table_name])
-                        csv_filename = f"{table_name}.csv"
-                        df.to_csv(csv_filename, index=False)
-                        print(f"Saved {table_name} table to {csv_filename}")
-                
-                return data
-                
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON: {e}")
-                print("Attempting to fix the JSON...")
-                
-                # Try to fix common JSON issues
-                try:
-                    # Read the raw response
-                    with open('raw_response.txt', 'r') as f:
-                        text = f.read()
-                    
-                    # Extract just the JSON part with more sophisticated regex
-                    match = re.search(r'({[\s\S]*})', text)
-                    if match:
-                        json_text = match.group(1)
-                        
-                        # Try to fix common issues with the JSON
-                        # 1. Fix trailing commas in arrays
-                        json_text = re.sub(r',(\s*[\]}])', r'\1', json_text)
-                        
-                        # 2. Add missing commas between array elements
-                        json_text = re.sub(r'(true|false|null|"[^"]*"|[0-9]+)\s*\n\s*("|\{|\[)', r'\1,\n\2', json_text)
-                        
-                        # 3. Fix single quotes used instead of double quotes
-                        json_text = re.sub(r"'([^']*)':", r'"\1":', json_text)
-                        
-                        # Save the fixed JSON
-                        with open('fixed_json.json', 'w') as f:
-                            f.write(json_text)
-                        
-                        print("Attempted to fix JSON, saved to fixed_json.json")
-                        
-                        # Try to parse the fixed JSON
-                        try:
-                            data = json.loads(json_text)
-                            with open('insurance_data.json', 'w') as f:
-                                json.dump(data, f, indent=2)
-                            print("Successfully fixed and saved the JSON data!")
-                            
-                            # Save individual tables to CSV
-                            for table_name in ['policies', 'customers', 'vehicles', 'coverages']:
-                                if table_name in data:
-                                    df = pd.DataFrame(data[table_name])
-                                    csv_filename = f"{table_name}.csv"
-                                    df.to_csv(csv_filename, index=False)
-                                    print(f"Saved {table_name} table to {csv_filename}")
-                            
-                            return data
-                        except json.JSONDecodeError as e2:
-                            print(f"Still couldn't parse the fixed JSON: {e2}")
-                            print("You might need to fix the JSON manually using the fixed_json.json file")
-                            return None
-                    else:
-                        print("Could not extract JSON with regex")
-                        return None
-                        
-                except Exception as e:
-                    print(f"Error in the JSON fixing process: {e}")
-                    return None
+            data = json.loads(json_str)
+
+            # Save the data to a file
+            with open('insurance_data.json', 'w') as f:
+                json.dump(data, f, indent=2)
+
+            print(f"✅ Successfully generated insurance data")
+            return data
         else:
-            print("Could not find JSON content in the response")
+            print("❌ Could not find JSON content in the response")
             return None
-            
+
     except Exception as e:
-        print(f"Error calling Bedrock: {e}")
+        print(f"❌ Error calling Bedrock: {e}")
         return None
 
+
+def convert_floats_to_decimal(obj):
+    """Convert float values to Decimal for DynamoDB compatibility"""
+    if isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, float):
+        return Decimal(str(obj))
+    else:
+        return obj
+
+
+def migrate_to_dynamodb(data):
+    """Migrate generated data directly to DynamoDB"""
+    print("\nMigrating data to DynamoDB...")
+
+    # Initialize DynamoDB using AWS CLI configured credentials
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+
+    # Define table mappings
+    tables = {
+        'customers': 'customers',
+        'policies': 'policies',
+        'vehicles': 'vehicles',
+        'coverages': 'coverages'
+    }
+
+    for table_name, dynamo_table_name in tables.items():
+        if table_name not in data:
+            print(f"⚠️  Skipping {table_name} - not found in generated data")
+            continue
+
+        print(f"\nMigrating {table_name}...")
+        table = dynamodb.Table(dynamo_table_name)
+        records = data[table_name]
+
+        # Convert floats to Decimal for DynamoDB
+        records = convert_floats_to_decimal(records)
+
+        success_count = 0
+        for record in records:
+            try:
+                table.put_item(Item=record)
+                success_count += 1
+            except Exception as e:
+                print(f"  ❌ Error inserting record: {e}")
+                print(f"  Record: {record}")
+
+        print(f"  ✅ {success_count}/{len(records)} records migrated to {table_name}")
+
+    print("\n🎉 Migration completed!")
+
+
+def verify_migration():
+    """Verify data was migrated successfully"""
+    print("\nVerifying migration...")
+
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+
+    tables = ['customers', 'policies', 'vehicles', 'coverages']
+
+    for table_name in tables:
+        try:
+            table = dynamodb.Table(table_name)
+            response = table.scan()
+            count = response['Count']
+            print(f"  {table_name}: {count} items")
+        except Exception as e:
+            print(f"  ❌ Error checking {table_name}: {e}")
+
+
 if __name__ == "__main__":
-    # Generate the data
+    # Step 1: Generate synthetic data
     data = generate_insurance_data()
+
+    if data:
+        # Step 2: Migrate to DynamoDB
+        migrate_to_dynamodb(data)
+
+        # Step 3: Verify migration
+        verify_migration()
+    else:
+        print("❌ Failed to generate data. Migration aborted.")

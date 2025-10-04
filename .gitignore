@@ -2,3 +2,35 @@
 env\
 aws_env\
 aws_env
+
+# AWS credentials and config
+.aws/
+*.pem
+credentials.json
+
+# Generated data files (don't commit actual data)
+synthetic_data_generation/*.json
+synthetic_data_generation/*.csv
+synthetic_data_generation/raw_response.txt
+synthetic_data_generation/fixed_json.json
+
+# AWS configuration files (contain account-specific info)
+bedrock_agent_config.json
+bedrock_action_groups.json
+action_group_*.json
+
+# Lambda backup/temp files
+lambda_functions/**/lambda_function_fixed.py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
