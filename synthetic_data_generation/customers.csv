@@ -1,0 +1,6 @@
+customer_id,first_name,last_name,age,date_of_birth,gender,marital_status,street_address,city,state,zip_code,country,phone,email,driving_license_number,driving_experience_years,previous_claims_count
+a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d,Michael,Johnson,42,1982-03-15,Male,Married,123 Oak Street,Chicago,IL,60601,USA,312-555-1234,michael.johnson@example.com,DL-IL-12345678,24,1
+b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e,Jennifer,Smith,29,1995-07-22,Female,Single,456 Pine Avenue,Seattle,WA,98101,USA,206-555-9876,jennifer.smith@example.com,DL-WA-87654321,11,0
+c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f,Robert,Williams,58,1966-11-03,Male,Divorced,789 Maple Drive,Austin,TX,78701,USA,512-555-4567,robert.williams@example.com,DL-TX-23456789,40,2
+d4e5f6a7-b8c9-7d8e-1f2a-3b4c5d6e7f8a,Sarah,Brown,35,1989-04-12,Female,Married,101 Cedar Lane,Boston,MA,02108,USA,617-555-7890,sarah.brown@example.com,DL-MA-34567890,17,1
+e5f6a7b8-c9d0-8e9f-2a3b-4c5d6e7f8a9b,David,Garcia,24,2000-09-28,Male,Single,202 Birch Boulevard,Miami,FL,33101,USA,305-555-2345,david.garcia@example.com,DL-FL-45678901,8,0
