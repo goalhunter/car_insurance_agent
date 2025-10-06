@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Repair Estimate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            color: #333;
+        }
+        .header {
+            border-bottom: 3px solid #003d7a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #003d7a;
+            margin-bottom: 5px;
+        }
+        .company-info {
+            font-size: 12px;
+            color: #666;
+        }
+        .estimate-title {
+            background: #003d7a;
+            color: white;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #003d7a;
+            font-size: 14px;
+            border-bottom: 2px solid #003d7a;
+            padding-bottom: 5px;
+        }
+        .info-row {
+            display: flex;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 140px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+        }
+        .category-header {
+            background: #e8e8e8;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .summary-section {
+            margin-top: 30px;
+            border: 2px solid #003d7a;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .total-row {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003d7a;
+            border-top: 2px solid #003d7a;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .notes {
+            margin-top: 30px;
+            padding: 15px;
+            background: #fffacd;
+            border-left: 4px solid #ffa500;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">SUNSHINE AUTO COLLISION CENTER</div>
+        <div class="company-info">
+            2450 Commercial Blvd, Fort Lauderdale, FL 33308<br>
+            Phone: (954) 555-0123 | Fax: (954) 555-0124<br>
+            Email: estimates@sunshineautocollision.com | License #BC-12345
+        </div>
+    </div>
+
+    <div class="estimate-title">REPAIR ESTIMATE REPORT</div>
+
+    <div class="info-section">
+        <div class="info-box">
+            <h3>ESTIMATE INFORMATION</h3>
+            <div class="info-row">
+                <span class="info-label">Estimate Number:</span>
+                <span>EST-2025-00847</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date:</span>
+                <span>October 5, 2025</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Estimator:</span>
+                <span>James Rodriguez</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Estimated Duration:</span>
+                <span>12-15 Business Days</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>VEHICLE INFORMATION</h3>
+            <div class="info-row">
+                <span class="info-label">Year/Make/Model:</span>
+                <span>2022 Toyota RAV4 Hybrid</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">VIN:</span>
+                <span>1HGCM82633A123456</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Color:</span>
+                <span>Silver</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mileage:</span>
+                <span>15,000 miles</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box" style="margin-bottom: 20px;">
+        <h3>DAMAGE DESCRIPTION</h3>
+        <p style="font-size: 13px; margin: 10px 0;">
+            Vehicle sustained moderate to severe damage in a side-impact collision. Primary damage to driver's side front fender, door, and front bumper assembly. Hood shows deformation. Driver's side mirror housing damaged. Front left headlight assembly compromised. Suspension components require inspection.
+        </p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">Description</th>
+                <th style="width: 15%;">Labor Hrs</th>
+                <th style="width: 15%;">Parts</th>
+                <th style="width: 20%;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="category-header">
+                <td colspan="4">FRONT BUMPER ASSEMBLY</td>
+            </tr>
+            <tr>
+                <td>Remove and Replace Front Bumper Cover</td>
+                <td class="text-right">2.5</td>
+                <td class="text-right">$485.00</td>
+                <td class="text-right">$710.00</td>
+            </tr>
+            <tr>
+                <td>Remove and Replace Front Bumper Reinforcement</td>
+                <td class="text-right">1.8</td>
+                <td class="text-right">$320.00</td>
+                <td class="text-right">$482.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">FRONT LEFT FENDER & HOOD</td>
+            </tr>
+            <tr>
+                <td>Remove and Replace Left Front Fender</td>
+                <td class="text-right">4.2</td>
+                <td class="text-right">$680.00</td>
+                <td class="text-right">$1,058.00</td>
+            </tr>
+            <tr>
+                <td>Hood - Repair and Refinish</td>
+                <td class="text-right">3.5</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$315.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">DOOR & SIDE PANEL</td>
+            </tr>
+            <tr>
+                <td>Left Front Door - Repair and Refinish</td>
+                <td class="text-right">5.5</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$495.00</td>
+            </tr>
+            <tr>
+                <td>Left Front Door Inner Panel - Replace</td>
+                <td class="text-right">2.8</td>
+                <td class="text-right">$425.00</td>
+                <td class="text-right">$677.00</td>
+            </tr>
+            <tr>
+                <td>Left Rocker Panel - Repair</td>
+                <td class="text-right">2.0</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$180.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">LIGHTING & ELECTRICAL</td>
+            </tr>
+            <tr>
+                <td>Left Front Headlight Assembly - Replace</td>
+                <td class="text-right">1.2</td>
+                <td class="text-right">$890.00</td>
+                <td class="text-right">$998.00</td>
+            </tr>
+            <tr>
+                <td>Left Side Mirror Assembly - Replace</td>
+                <td class="text-right">0.8</td>
+                <td class="text-right">$385.00</td>
+                <td class="text-right">$457.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">MECHANICAL & SUSPENSION</td>
+            </tr>
+            <tr>
+                <td>Left Front Wheel Alignment - Check & Adjust</td>
+                <td class="text-right">1.0</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$90.00</td>
+            </tr>
+            <tr>
+                <td>Suspension Inspection (Front Left)</td>
+                <td class="text-right">0.8</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$72.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">PAINT & REFINISHING</td>
+            </tr>
+            <tr>
+                <td>3-Stage Paint Process (All Affected Panels)</td>
+                <td class="text-right">8.5</td>
+                <td class="text-right">$580.00</td>
+                <td class="text-right">$1,345.00</td>
+            </tr>
+            <tr>
+                <td>Color Match & Blend (Adjacent Panels)</td>
+                <td class="text-right">3.2</td>
+                <td class="text-right">$245.00</td>
+                <td class="text-right">$533.00</td>
+            </tr>
+            <tr>
+                <td>Clear Coat & Finish</td>
+                <td class="text-right">2.5</td>
+                <td class="text-right">$180.00</td>
+                <td class="text-right">$405.00</td>
+            </tr>
+            
+            <tr class="category-header">
+                <td colspan="4">ADDITIONAL SERVICES</td>
+            </tr>
+            <tr>
+                <td>Disassembly & Reassembly Labor</td>
+                <td class="text-right">4.5</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$405.00</td>
+            </tr>
+            <tr>
+                <td>Detail & Final Quality Inspection</td>
+                <td class="text-right">2.0</td>
+                <td class="text-right">$0.00</td>
+                <td class="text-right">$180.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary-section">
+        <div class="summary-row">
+            <span>Parts Subtotal:</span>
+            <span>$4,190.00</span>
+        </div>
+        <div class="summary-row">
+            <span>Labor Subtotal (45.3 hours @ $90/hr):</span>
+            <span>$4,077.00</span>
+        </div>
+        <div class="summary-row">
+            <span>Paint & Materials:</span>
+            <span>$1,005.00</span>
+        </div>
+        <div class="summary-row">
+            <span>Subtotal:</span>
+            <span>$9,272.00</span>
+        </div>
+        <div class="summary-row">
+            <span>Sales Tax (7%):</span>
+            <span>$649.04</span>
+        </div>
+        <div class="summary-row">
+            <span>Shop Supplies & Fees:</span>
+            <span>$295.00</span>
+        </div>
+        <div class="summary-row total-row">
+            <span>TOTAL ESTIMATED COST:</span>
+            <span>$10,216.04</span>
+        </div>
+    </div>
+
+
+
+    <div class="footer">
+        <p><strong>Sunshine Auto Collision Center</strong> | Licensed & Insured | BBB A+ Rating | I-CAR Gold Class Certified</p>
+        <p>This estimate is provided for insurance and repair planning purposes. Actual costs may vary.</p>
+    </div>
+</body>
+</html>

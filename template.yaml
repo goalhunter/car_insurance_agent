@@ -1,0 +1,268 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AutoSettled - AI-Powered Car Insurance Claims Processing
+
+Globals:
+  Function:
+    Runtime: python3.10
+    Timeout: 300
+    MemorySize: 512
+    Environment:
+      Variables:
+        BEDROCK_AGENT_ID: !Ref BedrockAgentId
+        BEDROCK_AGENT_ALIAS_ID: !Ref BedrockAgentAliasId
+        S3_BUCKET_NAME: !Ref DocumentsBucket
+        CUSTOMER_TABLE: !Ref CustomerTable
+        POLICY_TABLE: !Ref PolicyTable
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+    GatewayResponses:
+      DEFAULT_4XX:
+        ResponseParameters:
+          Headers:
+            Access-Control-Allow-Origin: "'*'"
+            Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      DEFAULT_5XX:
+        ResponseParameters:
+          Headers:
+            Access-Control-Allow-Origin: "'*'"
+            Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+
+Parameters:
+  BedrockAgentId:
+    Type: String
+    Description: Bedrock Agent ID
+    Default: "8F18B4HMDE"
+
+  BedrockAgentAliasId:
+    Type: String
+    Description: Bedrock Agent Alias ID
+    Default: "TSTALIASID"
+
+Resources:
+  # S3 Bucket for storing documents and images
+  DocumentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub autosettled-documents-${AWS::AccountId}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
+
+  # DynamoDB Tables
+  CustomerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: autosettled-customers
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: customer_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: customer_id
+          KeyType: HASH
+
+  PolicyTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: autosettled-policies
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: policy_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: policy_id
+          KeyType: HASH
+
+  ClaimsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: claims-records
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: claim_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: claim_id
+          KeyType: HASH
+
+  # API Gateway Orchestration Lambda
+  ApiOrchestratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-api-orchestrator
+      Handler: api_orchestrator.lambda_handler
+      CodeUri: ./lambda_functions/apiOrchestrator/
+      Timeout: 120
+      MemorySize: 512
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins:
+            - "*"
+          AllowMethods:
+            - "*"
+          AllowHeaders:
+            - "*"
+          MaxAge: 300
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentsBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ClaimsTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeAgent
+              Resource: '*'
+      Events:
+        InvokeAgent:
+          Type: Api
+          Properties:
+            Path: /agent/invoke
+            Method: POST
+        StartClaim:
+          Type: Api
+          Properties:
+            Path: /claim/start
+            Method: POST
+        GetClaim:
+          Type: Api
+          Properties:
+            Path: /claim/{claimId}
+            Method: GET
+        ListClaims:
+          Type: Api
+          Properties:
+            Path: /claims
+            Method: GET
+
+  # File Upload Lambda
+  FileUploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-file-upload
+      Handler: file_upload.lambda_handler
+      CodeUri: ./lambda_functions/fileUpload/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentsBucket
+      Events:
+        Upload:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: POST
+
+  # Customer Verification Lambda
+  CustomerVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-customer-verification
+      Handler: lambda_function.lambda_handler
+      CodeUri: ./lambda_functions/customerVerification/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CustomerTable
+
+  # Policy Verification Lambda
+  PolicyVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-policy-verification
+      Handler: lambda_function.lambda_handler
+      CodeUri: ./lambda_functions/policyVerification/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PolicyTable
+
+  # Damage Analysis Lambda
+  DamageAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-damage-analysis
+      Handler: lambda_function.lambda_handler
+      CodeUri: ./lambda_functions/analyzeDamageImages/
+      Timeout: 900
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref DocumentsBucket
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+
+  # Document Analysis Lambda
+  DocumentAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-document-analysis
+      Handler: lambda_function.lambda_handler
+      CodeUri: ./lambda_functions/analyzeDocuments/
+      Timeout: 900
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref DocumentsBucket
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - textract:*
+              Resource: '*'
+
+  # Settlement Decision Lambda
+  SettlementDecisionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: autosettled-settlement-decision
+      Handler: lambda_function.lambda_handler
+      CodeUri: ./lambda_functions/generateSettlementDecision/
+      Layers:
+        - arn:aws:lambda:us-east-1:986341371998:layer:pdf-generation-layer:2
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ClaimsTable
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentsBucket
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+
+Outputs:
+  ApiGatewayUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  DocumentsBucketName:
+    Description: "S3 Bucket for documents"
+    Value: !Ref DocumentsBucket
+
+  CustomerTableName:
+    Description: "DynamoDB Customer Table"
+    Value: !Ref CustomerTable
+
+  PolicyTableName:
+    Description: "DynamoDB Policy Table"
+    Value: !Ref PolicyTable
+
+  ClaimsTableName:
+    Description: "DynamoDB Claims Table"
+    Value: !Ref ClaimsTable

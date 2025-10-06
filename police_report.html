@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Traffic Accident Report</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            color: #000;
+            font-size: 12px;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .header-subtitle {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .report-number {
+            text-align: right;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .section {
+            border: 1px solid #000;
+            margin: 15px 0;
+            padding: 10px;
+        }
+        .section-title {
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            font-weight: bold;
+            margin: -10px -10px 10px -10px;
+        }
+        .field-row {
+            display: flex;
+            margin: 8px 0;
+            align-items: baseline;
+        }
+        .field-label {
+            font-weight: bold;
+            min-width: 180px;
+        }
+        .field-value {
+            flex: 1;
+            border-bottom: 1px solid #000;
+            padding: 0 5px;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin: 8px 0;
+        }
+        .checkbox {
+            display: inline-block;
+        }
+        .checked {
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        table, th, td {
+            border: 1px solid #000;
+        }
+        th, td {
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background: #ddd;
+            font-weight: bold;
+        }
+        .narrative {
+            margin: 10px 0;
+            line-height: 1.6;
+            text-align: justify;
+        }
+        .signature-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 30px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">FORT LAUDERDALE POLICE DEPARTMENT</div>
+        <div class="header-subtitle">TRAFFIC COLLISION REPORT</div>
+        <div style="margin-top: 10px; font-size: 11px;">
+            1300 W Broward Blvd, Fort Lauderdale, FL 33312<br>
+            Emergency: 911 | Non-Emergency: (954) 764-4357
+        </div>
+    </div>
+
+    <div class="report-number">
+        REPORT NUMBER: FLPD-2025-TC-008472<br>
+        DATE OF REPORT: October 4, 2025
+    </div>
+
+    <div class="section">
+        <div class="section-title">INCIDENT INFORMATION</div>
+        <div class="field-row">
+            <span class="field-label">DATE OF COLLISION:</span>
+            <span class="field-value">October 3, 2025</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">TIME OF COLLISION:</span>
+            <span class="field-value">14:35 Hours (2:35 PM)</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">LOCATION:</span>
+            <span class="field-value">2450 Commercial Blvd & NE 25th Avenue, Fort Lauderdale, FL 33308</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">WEATHER CONDITIONS:</span>
+            <span class="field-value">Overcast, Dry Pavement</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">ROAD CONDITIONS:</span>
+            <span class="field-value">Good - Paved, No Defects</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">TRAFFIC CONTROL:</span>
+            <span class="field-value">Traffic Signal - Operational</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">VEHICLE #1 - AT FAULT</div>
+        <div class="field-row">
+            <span class="field-label">DRIVER NAME:</span>
+            <span class="field-value">MARTINEZ, CARLOS A.</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">DATE OF BIRTH:</span>
+            <span class="field-value">06/12/1991</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">ADDRESS:</span>
+            <span class="field-value">8734 Sunrise Blvd, Plantation, FL 33322</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">DRIVER'S LICENSE:</span>
+            <span class="field-value">DL-FL-M847-293-45-821-0 (Valid)</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">VEHICLE YEAR/MAKE/MODEL:</span>
+            <span class="field-value">2019 Honda Accord</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">VIN:</span>
+            <span class="field-value">1HGCV1F39KA123789</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">LICENSE PLATE:</span>
+            <span class="field-value">FL TAG: ABCD123</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">INSURANCE:</span>
+            <span class="field-value">State Farm Insurance - Policy #45-2839-FL-8472</span>
+        </div>
+        <div class="checkbox-group" style="margin-top: 10px;">
+            <span class="checkbox"><span class="checked">[X]</span> INJURY: None</span>
+            <span class="checkbox">[ ] Minor</span>
+            <span class="checkbox">[ ] Serious</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">VEHICLE #2 - NOT AT FAULT</div>
+        <div class="field-row">
+            <span class="field-label">DRIVER NAME:</span>
+            <span class="field-value">JOHNSON, MICHAEL T.</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">DATE OF BIRTH:</span>
+            <span class="field-value">03/15/1982</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">ADDRESS:</span>
+            <span class="field-value">123 Oak Street, Chicago, IL 60601</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">DRIVER'S LICENSE:</span>
+            <span class="field-value">DL-IL-12345678 (Valid)</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">VEHICLE YEAR/MAKE/MODEL:</span>
+            <span class="field-value">2022 Toyota RAV4 Hybrid</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">VIN:</span>
+            <span class="field-value">1HGCM82633A123456</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">LICENSE PLATE:</span>
+            <span class="field-value">IL TAG: ABC-1234</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">INSURANCE:</span>
+            <span class="field-value">Progressive Insurance - Policy #POL-001</span>
+        </div>
+        <div class="checkbox-group" style="margin-top: 10px;">
+            <span class="checkbox"><span class="checked">[X]</span> INJURY: None</span>
+            <span class="checkbox">[ ] Minor</span>
+            <span class="checkbox">[ ] Serious</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">COLLISION TYPE & FAULT DETERMINATION</div>
+        <div class="checkbox-group">
+            <span class="checkbox">[ ] Rear-End</span>
+            <span class="checkbox">[ ] Head-On</span>
+            <span class="checkbox"><span class="checked">[X]</span> Side-Impact (T-Bone)</span>
+            <span class="checkbox">[ ] Sideswipe</span>
+        </div>
+        <div class="checkbox-group">
+            <span class="checkbox">[ ] Hit & Run</span>
+            <span class="checkbox">[ ] Single Vehicle</span>
+            <span class="checkbox"><span class="checked">[X]</span> Multi-Vehicle (2)</span>
+        </div>
+        <div style="margin-top: 15px;">
+            <strong>PRIMARY CONTRIBUTING FACTOR:</strong>
+            <div class="checkbox-group">
+                <span class="checkbox"><span class="checked">[X]</span> Failure to Yield Right of Way</span>
+                <span class="checkbox">[ ] Speeding</span>
+                <span class="checkbox">[ ] Distracted Driving</span>
+            </div>
+        </div>
+        <div style="margin-top: 10px;">
+            <div class="field-row">
+                <span class="field-label">VEHICLE AT FAULT:</span>
+                <span class="field-value">VEHICLE #1 (Martinez - Honda Accord)</span>
+            </div>
+            <div class="field-row">
+                <span class="field-label">CITATION ISSUED:</span>
+                <span class="field-value">YES - Citation #TC-2025-84729 (Failure to Yield)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">NARRATIVE / OFFICER'S STATEMENT</div>
+        <div class="narrative">
+            On October 3, 2025, at approximately 1435 hours, I, Officer Patricia Collins (Badge #2847), responded to a traffic collision at the intersection of Commercial Boulevard and NE 25th Avenue in Fort Lauderdale, Florida.
+            <br><br>
+            Upon arrival, I observed two vehicles involved in a side-impact collision. Vehicle #1, a silver 2019 Honda Accord operated by Carlos Martinez, and Vehicle #2, a silver 2022 Toyota RAV4 Hybrid operated by Michael Johnson.
+            <br><br>
+            Investigation revealed that Vehicle #1 (Martinez) was traveling eastbound on Commercial Boulevard and failed to stop at the red traffic signal at the intersection with NE 25th Avenue. Vehicle #2 (Johnson) was traveling northbound on NE 25th Avenue and had the right of way with a green traffic signal.
+            <br><br>
+            Vehicle #1 struck Vehicle #2 on the driver's side front quarter panel and door area, causing significant damage to Vehicle #2's left front fender, door, and bumper assembly. The impact caused Vehicle #2 to spin approximately 45 degrees clockwise before coming to rest in the intersection.
+            <br><br>
+            Both drivers were wearing seat belts at the time of collision. Neither driver reported injuries and both declined medical attention at the scene. Both vehicles were drivable and moved to the parking lot at 2450 Commercial Boulevard to complete the investigation.
+            <br><br>
+            Mr. Martinez stated he was distracted by his GPS navigation system and did not observe the red traffic signal. Two independent witnesses, Maria Santos and Robert Williams, confirmed that Vehicle #1 ran the red light and was at fault for the collision. Their contact information is on file.
+            <br><br>
+            Mr. Johnson stated he was proceeding through the intersection on a green light when Vehicle #1 struck his vehicle. His account is consistent with witness statements and physical evidence at the scene.
+            <br><br>
+            Weather conditions were overcast but dry. Road surface was in good condition with no contributing factors. Traffic signal was operational and functioning properly, confirmed by witness testimony.
+            <br><br>
+            Vehicle #1 sustained minor damage to the front bumper and hood. Vehicle #2 sustained moderate to severe damage to the driver's side front quarter panel, fender, door, bumper, and associated components.
+            <br><br>
+            Based on investigation, physical evidence, and witness statements, Vehicle #1 (Martinez) was determined to be 100% at fault for this collision due to failure to yield right of way at a controlled intersection (red traffic signal violation). Citation #TC-2025-84729 was issued to Mr. Martinez for Failure to Yield Right of Way (Florida Statute 316.075(1)(a)).
+            <br><br>
+            No DUI suspected. No evidence of reckless driving. Scene photographs taken and filed with this report. Both parties exchanged insurance information. Report completed at scene.
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">WITNESS INFORMATION</div>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Statement</th>
+            </tr>
+            <tr>
+                <td>SANTOS, MARIA</td>
+                <td>(954) 555-8234</td>
+                <td>Witnessed Vehicle #1 run red light</td>
+            </tr>
+            <tr>
+                <td>WILLIAMS, ROBERT</td>
+                <td>(954) 555-9127</td>
+                <td>Confirmed Vehicle #2 had green light</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">OFFICER INFORMATION</div>
+        <div class="field-row">
+            <span class="field-label">RESPONDING OFFICER:</span>
+            <span class="field-value">Officer Patricia Collins, Badge #2847</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">SUPERVISOR:</span>
+            <span class="field-value">Sergeant James Rodriguez, Badge #1523</span>
+        </div>
+        <div class="field-row">
+            <span class="field-label">DATE/TIME COMPLETED:</span>
+            <span class="field-value">October 4, 2025 / 09:15 Hours</span>
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div style="font-weight: bold;">Officer Signature</div>
+            <div style="font-style: italic; margin-top: 5px;">Patricia Collins</div>
+        </div>
+        <div class="signature-box">
+            <div style="font-weight: bold;">Supervisor Signature</div>
+            <div style="font-style: italic; margin-top: 5px;">James Rodriguez</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        FORT LAUDERDALE POLICE DEPARTMENT - OFFICIAL DOCUMENT<br>
+        CASE NUMBER: FLPD-2025-TC-008472 | PAGE 1 OF 1<br>
+        This report is a true and accurate account of the traffic collision as investigated by this officer.
+    </div>
+</body>
+</html>

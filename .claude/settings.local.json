@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(aws logs describe-log-streams:*)",
+      "Bash(sam build)",
+      "Bash(sam deploy:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
