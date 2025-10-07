@@ -188,6 +188,9 @@ export default function ClaimPage() {
 
     await sendMessage(message);
     setIsAnalyzing(false);
+
+    // Hide upload section after receiving response
+    setShowDocumentUpload(false);
   };
 
   const getStepInfo = (step: number) => {
@@ -307,9 +310,56 @@ export default function ClaimPage() {
                         px={4}
                         py={2}
                       >
-                        <Text fontSize="sm" css={{ whiteSpace: 'pre-wrap' }}>
-                          {message.content}
-                        </Text>
+                        {(() => {
+                          // Extract PDF URL and remove it from message content
+                          const markdownMatch = message.content.match(/\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+                          const plainMatch = message.content.match(/Download your settlement report:\s*(https?:\/\/[^\s]+)/);
+
+                          const pdfUrl = markdownMatch?.[1] || plainMatch?.[1];
+
+                          // Remove the markdown link or plain URL from content
+                          let displayContent = message.content;
+                          if (markdownMatch) {
+                            displayContent = displayContent.replace(markdownMatch[0], '').trim();
+                          } else if (plainMatch) {
+                            displayContent = displayContent.replace(plainMatch[0], '').trim();
+                          }
+
+                          return (
+                            <>
+                              <Text fontSize="sm" css={{ whiteSpace: 'pre-wrap' }}>
+                                {displayContent}
+                              </Text>
+
+                              {/* Show PDF download button if message contains PDF URL */}
+                              {pdfUrl && message.role === 'assistant' && (
+                                <Box mt={3}>
+                                  {(() => {
+                                    // Update step to Settlement Decision when PDF is available
+                                    if (claimState.currentStep !== ClaimStep.SETTLEMENT_DECISION) {
+                                      setClaimState(prev => ({ ...prev, currentStep: ClaimStep.SETTLEMENT_DECISION }));
+                                    }
+
+                                    return (
+                                      <Button
+                                        as="a"
+                                        href={pdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        colorPalette="blue"
+                                        size="sm"
+                                        w="full"
+                                      >
+                                        📄 Download Settlement Report (PDF)
+                                      </Button>
+                                    );
+                                  })()}
+                                </Box>
+                              )}
+                            </>
+                          );
+                        })()}
+
                         <Text fontSize="xs" mt={1} opacity="0.7">
                           {message.timestamp.toLocaleTimeString()}
                         </Text>
