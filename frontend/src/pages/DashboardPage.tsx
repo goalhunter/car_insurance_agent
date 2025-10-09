@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, TrendingUp, Clock, CheckCircle, AlertTriangle, XCircle, Search } from 'lucide-react';
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  Button,
+  Input,
+  Flex,
+  Card,
+  Badge,
+  Spinner,
+  SimpleGrid,
+  Table,
+} from '@chakra-ui/react';
 import { listClaims } from '../services/api';
 
 interface ClaimSummary {
@@ -64,47 +77,41 @@ export default function DashboardPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'APPROVE':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return '✅';
       case 'MANUAL_REVIEW':
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+        return '⚠️';
       case 'DENY':
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return '❌';
       case 'IN_PROGRESS':
-        return <Clock className="h-5 w-5 text-blue-600" />;
+        return '⏳';
       default:
-        return <Clock className="h-5 w-5 text-gray-600" />;
+        return '⏳';
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'green' | 'yellow' | 'red' | 'blue' | 'gray' => {
     switch (status) {
       case 'APPROVE':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'green';
       case 'MANUAL_REVIEW':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+        return 'yellow';
       case 'DENY':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'red';
       case 'IN_PROGRESS':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'blue';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'gray';
     }
   };
 
-  const getRiskBadge = (risk?: string) => {
-    if (!risk) return null;
-
+  const getRiskColor = (risk?: string): 'green' | 'yellow' | 'red' | undefined => {
+    if (!risk) return undefined;
     const colors = {
-      low: 'bg-green-100 text-green-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-red-100 text-red-800',
+      low: 'green' as const,
+      medium: 'yellow' as const,
+      high: 'red' as const,
     };
-
-    return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colors[risk as keyof typeof colors]}`}>
-        {risk.toUpperCase()} RISK
-      </span>
-    );
+    return colors[risk as keyof typeof colors];
   };
 
   const filteredClaims = claims.filter((claim) => {
@@ -128,200 +135,180 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="h-16 w-16 text-blue-600 mx-auto animate-pulse mb-4" />
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
+      <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
+        <Flex direction="column" align="center" gap={4}>
+          <Spinner size="xl" color="blue.600" />
+          <Text color="gray.600">Loading dashboard...</Text>
+        </Flex>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Box minH="100vh" bg="gray.50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Claims Dashboard</h1>
-            </div>
-            <nav className="flex space-x-6">
-              <Link to="/" className="text-gray-700 hover:text-blue-600">
-                Home
+      <Box bg="white" boxShadow="sm" py={4}>
+        <Container maxW="7xl">
+          <Flex justify="space-between" align="center">
+            <Flex align="center" gap={3}>
+              <Text fontSize="2xl">🚗</Text>
+              <Heading size="xl" color="gray.900">Claims Dashboard</Heading>
+            </Flex>
+            <Flex gap={6}>
+              <Link to="/">
+                <Text color="gray.700" _hover={{ color: 'blue.600' }}>Home</Text>
               </Link>
-              <Link to="/claim" className="text-blue-600 hover:text-blue-700 font-medium">
-                File New Claim
+              <Link to="/claim">
+                <Button colorPalette="blue" size="sm">File New Claim</Button>
               </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+            </Flex>
+          </Flex>
+        </Container>
+      </Box>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Container maxW="7xl" py={8}>
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} gap={6} mb={8}>
           <StatCard
-            icon={<TrendingUp className="h-6 w-6" />}
+            icon="📊"
             label="Total Claims"
             value={stats.total}
             color="blue"
           />
           <StatCard
-            icon={<CheckCircle className="h-6 w-6" />}
+            icon="✅"
             label="Approved"
             value={stats.approved}
             color="green"
           />
           <StatCard
-            icon={<AlertTriangle className="h-6 w-6" />}
+            icon="⚠️"
             label="Under Review"
             value={stats.pending}
             color="yellow"
           />
           <StatCard
-            icon={<XCircle className="h-6 w-6" />}
+            icon="❌"
             label="Denied"
             value={stats.denied}
             color="red"
           />
           <StatCard
-            icon={<Clock className="h-6 w-6" />}
+            icon="⏳"
             label="In Progress"
             value={stats.inProgress}
             color="blue"
           />
-        </div>
+        </SimpleGrid>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
+        <Card.Root bg="white" p={6} mb={6}>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={4} align={{ base: 'stretch', md: 'center' }} justify="space-between">
             {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+            <Box flex="1">
+              <Input
                 type="text"
-                placeholder="Search by claim ID, customer name, or policy number..."
+                placeholder="🔍 Search by claim ID, customer name, or policy number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                size="md"
               />
-            </div>
+            </Box>
 
             {/* Filter */}
-            <div className="flex space-x-2">
+            <Flex gap={2} flexWrap="wrap">
               {['ALL', 'APPROVE', 'MANUAL_REVIEW', 'DENY', 'IN_PROGRESS'].map((status) => (
-                <button
+                <Button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filterStatus === status
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  size="sm"
+                  variant={filterStatus === status ? 'solid' : 'outline'}
+                  colorPalette={filterStatus === status ? 'blue' : 'gray'}
                 >
                   {status === 'MANUAL_REVIEW' ? 'Review' : status === 'IN_PROGRESS' ? 'Progress' : status}
-                </button>
+                </Button>
               ))}
-            </div>
-          </div>
-        </div>
+            </Flex>
+          </Flex>
+        </Card.Root>
 
         {/* Claims Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Claim ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Policy Number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Risk
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+        <Card.Root bg="white" overflow="hidden">
+          <Box overflowX="auto">
+            <Table.Root size="md">
+              <Table.Header>
+                <Table.Row bg="gray.50">
+                  <Table.ColumnHeader>Claim ID</Table.ColumnHeader>
+                  <Table.ColumnHeader>Customer</Table.ColumnHeader>
+                  <Table.ColumnHeader>Policy Number</Table.ColumnHeader>
+                  <Table.ColumnHeader>Status</Table.ColumnHeader>
+                  <Table.ColumnHeader>Risk</Table.ColumnHeader>
+                  <Table.ColumnHeader>Amount</Table.ColumnHeader>
+                  <Table.ColumnHeader>Created</Table.ColumnHeader>
+                  <Table.ColumnHeader>Actions</Table.ColumnHeader>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
                 {filteredClaims.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <Table.Row>
+                    <Table.Cell colSpan={8} textAlign="center" py={12} color="gray.500">
                       {searchTerm || filterStatus !== 'ALL'
                         ? 'No claims match your filters'
                         : 'No claims found'}
-                    </td>
-                  </tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ) : (
                   filteredClaims.map((claim) => (
-                    <tr key={claim.claim_id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <Table.Row key={claim.claim_id} _hover={{ bg: 'gray.50' }}>
+                      <Table.Cell fontWeight="medium" fontSize="sm">
                         {claim.claim_id.substring(0, 8)}...
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {claim.customer_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {claim.policy_number}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(claim.status)}
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(claim.status)}`}>
+                      </Table.Cell>
+                      <Table.Cell fontSize="sm">{claim.customer_name}</Table.Cell>
+                      <Table.Cell fontSize="sm">{claim.policy_number}</Table.Cell>
+                      <Table.Cell>
+                        <Flex align="center" gap={2}>
+                          <Text fontSize="lg">{getStatusIcon(claim.status)}</Text>
+                          <Badge colorPalette={getStatusColor(claim.status)} size="sm">
                             {claim.status === 'MANUAL_REVIEW' ? 'REVIEW' : claim.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {getRiskBadge(claim.risk_level)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          </Badge>
+                        </Flex>
+                      </Table.Cell>
+                      <Table.Cell>
+                        {claim.risk_level && (
+                          <Badge colorPalette={getRiskColor(claim.risk_level)} size="sm">
+                            {claim.risk_level.toUpperCase()} RISK
+                          </Badge>
+                        )}
+                      </Table.Cell>
+                      <Table.Cell fontSize="sm">
                         {claim.amount ? `$${claim.amount.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      </Table.Cell>
+                      <Table.Cell fontSize="sm">
                         {new Date(claim.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          to={`/results/${claim.claim_id}`}
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          View Details
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Link to={`/results/${claim.claim_id}`}>
+                          <Button variant="ghost" colorPalette="blue" size="sm">
+                            View Details
+                          </Button>
                         </Link>
-                      </td>
-                    </tr>
+                      </Table.Cell>
+                    </Table.Row>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </Table.Body>
+            </Table.Root>
+          </Box>
+        </Card.Root>
 
         {/* Summary Footer */}
         {filteredClaims.length > 0 && (
-          <div className="mt-4 text-sm text-gray-600 text-center">
+          <Text mt={4} fontSize="sm" color="gray.600" textAlign="center">
             Showing {filteredClaims.length} of {claims.length} claims
-          </div>
+          </Text>
         )}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 }
 
@@ -331,25 +318,27 @@ function StatCard({
   value,
   color,
 }: {
-  icon: React.ReactNode;
+  icon: string;
   label: string;
   value: number;
   color: 'blue' | 'green' | 'yellow' | 'red';
 }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-    red: 'bg-red-50 text-red-600',
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className={`inline-flex items-center justify-center p-3 rounded-lg ${colorClasses[color]} mb-4`}>
-        {icon}
-      </div>
-      <p className="text-sm text-gray-600 mb-1">{label}</p>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
-    </div>
+    <Card.Root bg="white" p={6}>
+      <Flex direction="column" align="start">
+        <Box
+          bg={`${color}.50`}
+          color={`${color}.600`}
+          p={3}
+          borderRadius="lg"
+          mb={4}
+          fontSize="2xl"
+        >
+          {icon}
+        </Box>
+        <Text fontSize="sm" color="gray.600" mb={1}>{label}</Text>
+        <Text fontSize="3xl" fontWeight="bold" color="gray.900">{value}</Text>
+      </Flex>
+    </Card.Root>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -212,9 +212,16 @@ export default function ClaimPage() {
       {/* Header */}
       <Box bg="white" boxShadow="sm" py={4}>
         <Container maxW="7xl">
-          <Flex align="center" gap={3}>
-            <Text fontSize="2xl">🛡️</Text>
-            <Heading size="xl" color="gray.900">File a Claim</Heading>
+          <Flex align="center" justify="space-between">
+            <Flex align="center" gap={3}>
+              <Text fontSize="2xl">🛡️</Text>
+              <Heading size="xl" color="gray.900">File a Claim</Heading>
+            </Flex>
+            <Link to="/">
+              <Button variant="ghost" colorPalette="blue" size="sm">
+                ← Back to Home
+              </Button>
+            </Link>
           </Flex>
         </Container>
       </Box>
