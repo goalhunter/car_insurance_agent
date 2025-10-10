@@ -1,6 +1,11 @@
 vehicle_id,policy_id,customer_id,vehicle_type,make,model,color,year_of_manufacture,registration_number,vin,engine_size,fuel_type,odometer_reading,vehicle_value,anti_theft_device
 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d,f8c3de3d-1d35-4b77-9b4e-8f1c8b8e1f2a,a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d,SUV,Toyota,RAV4,Silver,2022,ABC-1234,1HGCM82633A123456,2.5L,Hybrid,15000,32000,True
+1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6e,f8c3de3d-1d35-4b77-9b4e-8f1c8b8e1f2b,a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d,Car,Honda,Accord,Blue,2019,ABC-5678,2HGFC2F59MH123456,2.0L,Gasoline,42000,22000,True
+1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6f,f8c3de3d-1d35-4b77-9b4e-8f1c8b8e1f2c,a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d,Truck,Ford,F-150,Black,2023,ABC-9012,1FTEW1E53PFC12345,3.5L,Gasoline,12000,48000,True
 2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e,d7e6f5d4-c3b2-4a1b-9c8d-7e6f5d4c3b2a,b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e,Car,Honda,Civic,Blue,2020,XYZ-5678,2FMZA51636X123456,1.8L,Gasoline,28500,18500,True
+2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7f,d7e6f5d4-c3b2-4a1b-9c8d-7e6f5d4c3b2b,b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e,SUV,Mazda,CX-5,Red,2021,XYZ-9012,JM3KFBDM5M0123456,2.5L,Gasoline,35000,28000,True
 3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f,c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0f,c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f,Truck,Ford,F-150,Black,2021,TX-12345,1FTEW1E53MFA12345,3.5L,Gasoline,22000,45000,False
+3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8g,c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0g,c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f,Car,Chevrolet,Malibu,White,2018,TX-67890,1G1ZD5ST8JF123456,2.0L,Gasoline,58000,16000,True
+3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8h,c5d6e7f8-9a0b-1c2d-3e4f-5a6b7c8d9e0h,c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f,Motorcycle,Harley-Davidson,Street 750,Orange,2017,TX-11111,1HD1LEX15HB123456,750cc,Gasoline,15000,8500,False
 4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a,b4c5d6e7-f8a9-0b1c-2d3e-4f5a6b7c8d9e,d4e5f6a7-b8c9-7d8e-1f2a-3b4c5d6e7f8a,Car,Tesla,Model 3,White,2023,MA-98765,5YJ3E1EA1PF123456,Electric,Electric,8500,52000,True
 5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b,a3b4c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d,e5f6a7b8-c9d0-8e9f-2a3b-4c5d6e7f8a9b,Motorcycle,Yamaha,YZF R6,Red,2019,FL-54321,JYARJ16E19A012345,600cc,Gasoline,12000,9500,False

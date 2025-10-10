@@ -52,11 +52,57 @@ def handle_new_format(event, context):
 
         if response['Items']:
             customer = response['Items'][0]
+            customer_id = customer.get('customer_id')
+
+            # Fetch all active policies for this customer
+            policies = []
+            try:
+                policy_table = dynamodb.Table('policies')
+                policy_response = policy_table.scan(
+                    FilterExpression='customer_id = :cid AND policy_status = :status',
+                    ExpressionAttributeValues={
+                        ':cid': customer_id,
+                        ':status': 'Active'
+                    }
+                )
+
+                # For each policy, fetch vehicle information
+                vehicle_table = dynamodb.Table('vehicles')
+                for policy in policy_response.get('Items', []):
+                    policy_id = policy.get('policy_id')
+
+                    # Fetch vehicle for this policy
+                    vehicle_response = vehicle_table.scan(
+                        FilterExpression='policy_id = :pid',
+                        ExpressionAttributeValues={':pid': policy_id}
+                    )
+
+                    vehicle = vehicle_response.get('Items', [{}])[0] if vehicle_response.get('Items') else {}
+
+                    # Build enriched policy object
+                    policies.append({
+                        'policy_id': policy.get('policy_id'),
+                        'policy_number': policy.get('policy_number'),
+                        'policy_type': policy.get('policy_type'),
+                        'vehicle_year': str(vehicle.get('year_of_manufacture', '')),
+                        'vehicle_make': vehicle.get('make', ''),
+                        'vehicle_model': vehicle.get('model', ''),
+                        'vehicle_type': vehicle.get('vehicle_type', ''),
+                        'premium_amount': float(policy.get('premium_amount', 0)),
+                        'coverage_amount': float(policy.get('coverage_amount', 0)),
+                        'deductible_amount': float(policy.get('deductible_amount', 0))
+                    })
+
+            except Exception as pe:
+                print(f"Error fetching policies: {str(pe)}")
+                # Continue even if policy fetch fails
+
             result_body = {
                 'verified': True,
-                'customer_id': customer.get('customer_id'),
+                'customer_id': customer_id,
                 'customer_data': customer,
-                'message': f"Customer {first_name} {last_name} verified successfully"
+                'policies': policies,
+                'message': f"Customer {first_name} {last_name} verified successfully. Found {len(policies)} active policy(ies)"
             }
         else:
             result_body = {
@@ -126,11 +172,58 @@ def handle_old_format(event, context):
         )
 
         if response['Items']:
+            customer = response['Items'][0]
+            customer_id = customer.get('customer_id')
+
+            # Fetch all active policies for this customer
+            policies = []
+            try:
+                policy_table = dynamodb.Table('policies')
+                policy_response = policy_table.scan(
+                    FilterExpression='customer_id = :cid AND policy_status = :status',
+                    ExpressionAttributeValues={
+                        ':cid': customer_id,
+                        ':status': 'Active'
+                    }
+                )
+
+                # For each policy, fetch vehicle information
+                vehicle_table = dynamodb.Table('vehicles')
+                for policy in policy_response.get('Items', []):
+                    policy_id = policy.get('policy_id')
+
+                    # Fetch vehicle for this policy
+                    vehicle_response = vehicle_table.scan(
+                        FilterExpression='policy_id = :pid',
+                        ExpressionAttributeValues={':pid': policy_id}
+                    )
+
+                    vehicle = vehicle_response.get('Items', [{}])[0] if vehicle_response.get('Items') else {}
+
+                    # Build enriched policy object
+                    policies.append({
+                        'policy_id': policy.get('policy_id'),
+                        'policy_number': policy.get('policy_number'),
+                        'policy_type': policy.get('policy_type'),
+                        'vehicle_year': str(vehicle.get('year_of_manufacture', '')),
+                        'vehicle_make': vehicle.get('make', ''),
+                        'vehicle_model': vehicle.get('model', ''),
+                        'vehicle_type': vehicle.get('vehicle_type', ''),
+                        'premium_amount': float(policy.get('premium_amount', 0)),
+                        'coverage_amount': float(policy.get('coverage_amount', 0)),
+                        'deductible_amount': float(policy.get('deductible_amount', 0))
+                    })
+
+            except Exception as pe:
+                print(f"Error fetching policies: {str(pe)}")
+                # Continue even if policy fetch fails
+
             result = {
                 'verified': True,
-                'customer_id': response['Items'][0].get('customer_id'),
-                'customer_data': response['Items'][0],
-                'message': f"Customer {first_name} {last_name} verified successfully"
+                'customer_id': customer_id,
+                'customer_data': customer,
+                'policies': policies,
+                'message': f"Customer {first_name} {last_name} verified successfully. Found {len(policies)} active policy(ies)"
             }
         else:
             result = {
