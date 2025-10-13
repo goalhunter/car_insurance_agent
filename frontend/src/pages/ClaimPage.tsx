@@ -680,7 +680,7 @@ export default function ClaimPage() {
 
                               {/* Show PDF download button if message contains PDF URL */}
                               {pdfUrl && message.role === 'assistant' && (
-                                <Box mt={3}>
+                                <VStack gap={2} mt={3} align="stretch">
                                   {(() => {
                                     // Update step to Settlement Decision when PDF is available
                                     if (claimState.currentStep !== ClaimStep.SETTLEMENT_DECISION) {
@@ -688,20 +688,31 @@ export default function ClaimPage() {
                                     }
 
                                     return (
-                                      <Button
-                                        as="a"
-                                        href={pdfUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        colorPalette="blue"
-                                        size="sm"
-                                        w="full"
-                                      >
-                                        📄 Download Settlement Report (PDF)
-                                      </Button>
+                                      <>
+                                        <Button
+                                          as="a"
+                                          href={pdfUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          colorPalette="blue"
+                                          size="sm"
+                                          w="full"
+                                        >
+                                          📄 Download Settlement Report (PDF)
+                                        </Button>
+                                        <Button
+                                          onClick={() => navigate('/')}
+                                          colorPalette="green"
+                                          variant="outline"
+                                          size="sm"
+                                          w="full"
+                                        >
+                                          🏠 Back to Home
+                                        </Button>
+                                      </>
                                     );
                                   })()}
-                                </Box>
+                                </VStack>
                               )}
                             </>
                           );
