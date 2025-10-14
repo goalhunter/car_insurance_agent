@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-const UPLOAD_API_URL = import.meta.env.VITE_UPLOAD_API_URL || API_BASE_URL;
+const API_BASE_URL = 'https://52xcceuza5i7iuwmrri2xfsnoq0etomm.lambda-url.us-east-1.on.aws';
+const UPLOAD_API_URL = 'https://ihjp2pdhub.execute-api.us-east-1.amazonaws.com/Prod';
 
 export interface AgentInvokeRequest {
   inputText: string;

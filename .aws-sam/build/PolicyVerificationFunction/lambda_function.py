@@ -45,7 +45,7 @@ def handle_new_format(event, context):
 
     # Query DynamoDB
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table('policies')
+    table = dynamodb.Table('autosettled-policies')
 
     try:
         response = table.get_item(Key={'policy_id': policy_id})
@@ -77,7 +77,7 @@ def handle_new_format(event, context):
                 # Fetch vehicle data to get VIN
                 vehicle_vin = None
                 try:
-                    vehicle_table = dynamodb.Table('vehicles')
+                    vehicle_table = dynamodb.Table('autosettled-vehicles')
                     vehicle_response = vehicle_table.scan(
                         FilterExpression='policy_id = :pid',
                         ExpressionAttributeValues={':pid': policy_id}
@@ -132,7 +132,7 @@ def handle_old_format(event, context):
     print(f"Parameters - policy_id: {policy_id}, customer_id: {customer_id}")
 
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table('policies')
+    table = dynamodb.Table('autosettled-policies')
 
     try:
         response = table.get_item(Key={'policy_id': policy_id})
@@ -164,7 +164,7 @@ def handle_old_format(event, context):
                 # Fetch vehicle data to get VIN
                 vehicle_vin = None
                 try:
-                    vehicle_table = dynamodb.Table('vehicles')
+                    vehicle_table = dynamodb.Table('autosettled-vehicles')
                     vehicle_response = vehicle_table.scan(
                         FilterExpression='policy_id = :pid',
                         ExpressionAttributeValues={':pid': policy_id}

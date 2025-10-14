@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -47,6 +47,14 @@ export default function ClaimPage() {
 
   // State to track if a policy button was clicked
   const [policySelected, setPolicySelected] = useState(false);
+
+  // Ref for auto-scrolling to bottom of messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isLoading, showDamageUpload, showDocumentUpload]);
 
   // Initialize session on mount
   useEffect(() => {
@@ -476,27 +484,24 @@ export default function ClaimPage() {
                           colorPalette="blue"
                           variant="outline"
                           size="sm"
-                          leftIcon={<span>👋</span>}
                         >
-                          Start My Claim
+                          <span>👋</span> Start My Claim
                         </Button>
                         <Button
                           onClick={() => sendMessage('Hello, I need help with a car accident claim')}
                           colorPalette="blue"
                           variant="outline"
                           size="sm"
-                          leftIcon={<span>🚗</span>}
                         >
-                          Car Accident Claim
+                          <span>🚗</span> Car Accident Claim
                         </Button>
                         <Button
                           onClick={() => sendMessage('Hi there')}
                           colorPalette="blue"
                           variant="outline"
                           size="sm"
-                          leftIcon={<span>💬</span>}
                         >
-                          Just Say Hi
+                          <span>💬</span> Just Say Hi
                         </Button>
                       </Flex>
                     </VStack>
@@ -689,17 +694,15 @@ export default function ClaimPage() {
 
                                     return (
                                       <>
-                                        <Button
-                                          as="a"
-                                          href={pdfUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          colorPalette="blue"
-                                          size="sm"
-                                          w="full"
-                                        >
-                                          📄 Download Settlement Report (PDF)
-                                        </Button>
+                                        <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                          <Button
+                                            colorPalette="blue"
+                                            size="sm"
+                                            w="full"
+                                          >
+                                            📄 Download Settlement Report (PDF)
+                                          </Button>
+                                        </a>
                                         <Button
                                           onClick={() => navigate('/')}
                                           colorPalette="green"
@@ -977,6 +980,9 @@ export default function ClaimPage() {
                       )}
                     </Card.Root>
                   )}
+
+                  {/* Invisible div for auto-scroll target */}
+                  <div ref={messagesEndRef} />
                 </VStack>
               </Box>
 

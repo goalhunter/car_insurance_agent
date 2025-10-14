@@ -5,15 +5,14 @@ Description: AutoSettled - AI-Powered Car Insurance Claims Processing
 Globals:
   Function:
     Runtime: python3.10
-    Timeout: 300
+    Timeout: 600
     MemorySize: 512
     Environment:
       Variables:
-        BEDROCK_AGENT_ID: !Ref BedrockAgentId
-        BEDROCK_AGENT_ALIAS_ID: !Ref BedrockAgentAliasId
         S3_BUCKET_NAME: !Ref DocumentsBucket
         CUSTOMER_TABLE: !Ref CustomerTable
         POLICY_TABLE: !Ref PolicyTable
+        VEHICLES_TABLE: !Ref VehiclesTable
   Api:
     Cors:
       AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
@@ -30,17 +29,6 @@ Globals:
           Headers:
             Access-Control-Allow-Origin: "'*'"
             Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-
-Parameters:
-  BedrockAgentId:
-    Type: String
-    Description: Bedrock Agent ID
-    Default: "8F18B4HMDE"
-
-  BedrockAgentAliasId:
-    Type: String
-    Description: Bedrock Agent Alias ID
-    Default: "TSTALIASID"
 
 Resources:
   # S3 Bucket for storing documents and images
@@ -85,6 +73,18 @@ Resources:
         - AttributeName: policy_id
           KeyType: HASH
 
+  VehiclesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: autosettled-vehicles
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: vehicle_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: vehicle_id
+          KeyType: HASH
+
   ClaimsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -104,8 +104,14 @@ Resources:
       FunctionName: autosettled-api-orchestrator
       Handler: api_orchestrator.lambda_handler
       CodeUri: ./lambda_functions/apiOrchestrator/
-      Timeout: 120
+      Timeout: 900
       MemorySize: 512
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref DocumentsBucket
+          CLAIMS_TABLE: !Ref ClaimsTable
+          BEDROCK_AGENT_ID: 8F18B4HMDE
+          BEDROCK_AGENT_ALIAS_ID: TSTALIASID
       FunctionUrlConfig:
         AuthType: NONE
         Cors:
@@ -176,6 +182,17 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref CustomerTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref PolicyTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VehiclesTable
+
+  CustomerVerificationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CustomerVerificationFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
 
   # Policy Verification Lambda
   PolicyVerificationFunction:
@@ -187,6 +204,15 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref PolicyTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VehiclesTable
+
+  PolicyVerificationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref PolicyVerificationFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
 
   # Damage Analysis Lambda
   DamageAnalysisFunction:
@@ -199,12 +225,21 @@ Resources:
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref DocumentsBucket
+        - DynamoDBReadPolicy:
+            TableName: !Ref VehiclesTable
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
               Resource: '*'
+
+  DamageAnalysisPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DamageAnalysisFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
 
   # Document Analysis Lambda
   DocumentAnalysisFunction:
@@ -225,6 +260,13 @@ Resources:
                 - textract:*
               Resource: '*'
 
+  DocumentAnalysisPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DocumentAnalysisFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
+
   # Settlement Decision Lambda
   SettlementDecisionFunction:
     Type: AWS::Serverless::Function
@@ -232,6 +274,7 @@ Resources:
       FunctionName: autosettled-settlement-decision
       Handler: lambda_function.lambda_handler
       CodeUri: ./lambda_functions/generateSettlementDecision/
+      Timeout: 900
       Layers:
         - arn:aws:lambda:us-east-1:986341371998:layer:pdf-generation-layer:2
       Policies:
@@ -245,6 +288,94 @@ Resources:
               Action:
                 - bedrock:InvokeModel
               Resource: '*'
+
+  SettlementDecisionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SettlementDecisionFunction
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
+
+  # Frontend S3 Bucket
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub autosettled-frontend-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # CloudFront Origin Access Control
+  CloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub autosettled-frontend-oac-${AWS::AccountId}
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # CloudFront Distribution
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !Ref CloudFrontOriginAccessControl
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true
+          MinTTL: 0
+          DefaultTTL: 86400
+          MaxTTL: 31536000
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 300
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 300
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  # S3 Bucket Policy for CloudFront
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${FrontendBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
 
 Outputs:
   ApiGatewayUrl:
@@ -263,6 +394,22 @@ Outputs:
     Description: "DynamoDB Policy Table"
     Value: !Ref PolicyTable
 
+  VehiclesTableName:
+    Description: "DynamoDB Vehicles Table"
+    Value: !Ref VehiclesTable
+
   ClaimsTableName:
     Description: "DynamoDB Claims Table"
     Value: !Ref ClaimsTable
+
+  FrontendBucketName:
+    Description: "S3 Bucket for Frontend"
+    Value: !Ref FrontendBucket
+
+  CloudFrontURL:
+    Description: "CloudFront Distribution URL"
+    Value: !GetAtt FrontendDistribution.DomainName
+
+  CloudFrontDistributionId:
+    Description: "CloudFront Distribution ID"
+    Value: !Ref FrontendDistribution

@@ -121,7 +121,7 @@ def perform_damage_analysis(image_uris, policy_id):
     from datetime import datetime
 
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    vehicles_table = dynamodb.Table('vehicles')
+    vehicles_table = dynamodb.Table('autosettled-vehicles')
 
     try:
         # Fetch vehicle using policy_id

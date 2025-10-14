@@ -12,10 +12,6 @@ export default function LandingPage() {
               <Text fontSize="2xl">🚗</Text>
               <Heading size="xl" color="blue.600">AutoSettled</Heading>
             </Flex>
-            <Flex gap={8}>
-              <Link to="/"><Text color="gray.700" _hover={{ color: "blue.600" }}>Home</Text></Link>
-              <Link to="/dashboard"><Text color="gray.700" _hover={{ color: "blue.600" }}>Dashboard</Text></Link>
-            </Flex>
           </Flex>
         </Container>
       </Box>
@@ -36,11 +32,6 @@ export default function LandingPage() {
               <Link to="/claim">
                 <Button size="xl" colorPalette="blue" px={8} py={6} fontSize="lg" boxShadow="lg">
                   🚗 File a Claim Now
-                </Button>
-              </Link>
-              <Link to="/claim">
-                <Button size="xl" variant="outline" colorPalette="blue" px={8} py={6} fontSize="lg">
-                  🎬 Try Demo Claim
                 </Button>
               </Link>
             </Flex>

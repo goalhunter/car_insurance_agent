@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     Handles all API routes and invokes Bedrock Agent
     """
 
-    # Headers (CORS handled by Function URL)
+    # Headers (CORS handled by Lambda Function URL)
     headers = {
         'Content-Type': 'application/json'
     }

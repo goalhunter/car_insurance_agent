@@ -18,6 +18,13 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
 
+def safe_float(value, default=0):
+    """Safely convert value to float, handling strings and other types"""
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 def extract_json_from_text(text):
     """Extract JSON from text that may contain ```json code blocks or raw JSON"""
     if not isinstance(text, str):
@@ -136,8 +143,8 @@ def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysi
     policy_info = [
         ['Policy Number:', policy_data.get('policy_number', 'N/A')],
         ['Policy Type:', policy_data.get('policy_type', 'N/A')],
-        ['Coverage Amount:', f"${policy_data.get('coverage_amount', 0):,.2f}"],
-        ['Deductible:', f"${policy_data.get('deductible_amount', 0):,.2f}"],
+        ['Coverage Amount:', f"${safe_float(policy_data.get('coverage_amount', 0)):,.2f}"],
+        ['Deductible:', f"${safe_float(policy_data.get('deductible_amount', 0)):,.2f}"],
     ]
     policy_table = Table(policy_info, colWidths=[2*inch, 4*inch])
     policy_table.setStyle(TableStyle([
@@ -161,10 +168,10 @@ def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysi
     elements.append(Paragraph("Settlement Decision", heading_style))
     decision_data = [
         ['Decision:', recommendation],
-        ['Approved Amount:', f"${decision_json.get('approved_amount', 0):,.2f}"],
+        ['Approved Amount:', f"${safe_float(decision_json.get('approved_amount', 0)):,.2f}"],
         ['Deductible Applies:', 'Yes' if decision_json.get('deductible_applies', False) else 'No'],
-        ['Customer Pays:', f"${decision_json.get('customer_pays', 0):,.2f}"],
-        ['Insurance Pays:', f"${decision_json.get('insurance_pays', 0):,.2f}"],
+        ['Customer Pays:', f"${safe_float(decision_json.get('customer_pays', 0)):,.2f}"],
+        ['Insurance Pays:', f"${safe_float(decision_json.get('insurance_pays', 0)):,.2f}"],
     ]
     decision_table = Table(decision_data, colWidths=[2*inch, 4*inch])
     decision_table.setStyle(TableStyle([
@@ -192,7 +199,7 @@ Location: {doc_data.get('incident_location', 'N/A')}
 Police Case: {doc_data.get('police_case_number', 'N/A')}
 Fault Determination: {doc_data.get('fault_determination', 'N/A')}
 Damage Severity: {damage_data.get('severity', 'N/A')}
-Estimated Repair Cost: ${damage_data.get('estimated_repair_cost_usd', 0):,.2f}
+Estimated Repair Cost: ${safe_float(damage_data.get('estimated_repair_cost_usd', 0)):,.2f}
 Damage Description: {damage_data.get('damage_summary', '')}
 Crash Cause: {damage_data.get('likely_crash_reason', '')}
 Decision: {decision_json.get('recommendation', 'PENDING')}
@@ -222,9 +229,9 @@ Write a professional, factual summary explaining what happened and how our AI sy
     reasoning_prompt = f"""Write a detailed 2-paragraph explanation of why this insurance claim decision was made. Use the following information:
 
 Decision: {decision_json.get('recommendation', 'PENDING')}
-Approved Amount: ${decision_json.get('approved_amount', 0):,.2f}
-Deductible: ${policy_data.get('deductible_amount', 0):,.2f}
-Insurance Pays: ${decision_json.get('insurance_pays', 0):,.2f}
+Approved Amount: ${safe_float(decision_json.get('approved_amount', 0)):,.2f}
+Deductible: ${safe_float(policy_data.get('deductible_amount', 0)):,.2f}
+Insurance Pays: ${safe_float(decision_json.get('insurance_pays', 0)):,.2f}
 Risk Level: {decision_json.get('risk_assessment', 'N/A').upper()}
 Genuine Factors: {', '.join(decision_json.get('genuine_factors', []))}
 Suspicious Factors: {', '.join(decision_json.get('suspicious_factors', []))}
@@ -505,7 +512,7 @@ Be thorough, fair, and provide detailed reasoning for your decision."""
 
         # Save comprehensive record to DynamoDB
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-        table = dynamodb.Table('autosettled-claims')
+        table = dynamodb.Table('claims-records')
 
         # Convert to Decimal for DynamoDB
         def convert_to_decimal(obj):

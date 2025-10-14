@@ -7,6 +7,5 @@ s3_prefix = "autosettled-stack"
 region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "BedrockAgentId=\"8F18B4HMDE\" BedrockAgentAliasId=\"TSTALIASID\""
 resolve_s3 = true
 image_repositories = []

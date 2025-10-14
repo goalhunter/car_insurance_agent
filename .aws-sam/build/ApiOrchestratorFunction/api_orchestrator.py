@@ -17,7 +17,7 @@ dynamodb = boto3.resource('dynamodb')
 
 BEDROCK_AGENT_ID = os.environ['BEDROCK_AGENT_ID']
 BEDROCK_AGENT_ALIAS_ID = os.environ['BEDROCK_AGENT_ALIAS_ID']
-CLAIMS_TABLE = os.environ.get('CLAIMS_TABLE', 'claims-records')
+CLAIMS_TABLE = os.environ.get('CLAIMS_TABLE', 'autosettled-claims')
 
 def lambda_handler(event, context):
     """
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     Handles all API routes and invokes Bedrock Agent
     """
 
-    # Headers (CORS handled by Function URL)
+    # Headers (CORS handled by Lambda Function URL)
     headers = {
         'Content-Type': 'application/json'
     }

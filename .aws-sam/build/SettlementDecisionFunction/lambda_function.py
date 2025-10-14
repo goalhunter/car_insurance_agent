@@ -18,8 +18,62 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
 
+def safe_float(value, default=0):
+    """Safely convert value to float, handling strings and other types"""
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+def extract_json_from_text(text):
+    """Extract JSON from text that may contain ```json code blocks or raw JSON"""
+    if not isinstance(text, str):
+        return text
+
+    # Try to find JSON in code blocks first
+    import re
+    json_pattern = r'```json\s*(.*?)\s*```'
+    matches = re.findall(json_pattern, text, re.DOTALL)
+
+    if matches:
+        # Try to parse the first JSON block found
+        for match in matches:
+            try:
+                return json.loads(match)
+            except:
+                continue
+
+    # If no code blocks, try to parse the entire text as JSON
+    try:
+        return json.loads(text)
+    except:
+        # If all fails, return as dict with raw text
+        return {'raw_text': text}
+
 def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysis, document_analysis, decision_json, timestamp):
     """Generate a professional PDF settlement report"""
+
+    # Extract JSON from text responses
+    damage_analysis = extract_json_from_text(damage_analysis) if isinstance(damage_analysis, str) else damage_analysis
+    document_analysis = extract_json_from_text(document_analysis) if isinstance(document_analysis, str) else document_analysis
+
+    # Get nested analysis data if available
+    if isinstance(damage_analysis, dict):
+        damage_data = damage_analysis.get('analysis', damage_analysis)
+        # If 'analysis' is a string, extract JSON from it
+        if isinstance(damage_data, str):
+            damage_data = extract_json_from_text(damage_data)
+    else:
+        damage_data = {}
+
+    # Handle document_analysis similarly
+    if isinstance(document_analysis, dict):
+        doc_data = document_analysis.get('raw_analysis', document_analysis)
+        if isinstance(doc_data, str):
+            doc_data = extract_json_from_text(doc_data)
+    else:
+        doc_data = {}
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
 
@@ -89,8 +143,8 @@ def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysi
     policy_info = [
         ['Policy Number:', policy_data.get('policy_number', 'N/A')],
         ['Policy Type:', policy_data.get('policy_type', 'N/A')],
-        ['Coverage Amount:', f"${policy_data.get('coverage_amount', 0):,.2f}"],
-        ['Deductible:', f"${policy_data.get('deductible_amount', 0):,.2f}"],
+        ['Coverage Amount:', f"${safe_float(policy_data.get('coverage_amount', 0)):,.2f}"],
+        ['Deductible:', f"${safe_float(policy_data.get('deductible_amount', 0)):,.2f}"],
     ]
     policy_table = Table(policy_info, colWidths=[2*inch, 4*inch])
     policy_table.setStyle(TableStyle([
@@ -114,10 +168,10 @@ def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysi
     elements.append(Paragraph("Settlement Decision", heading_style))
     decision_data = [
         ['Decision:', recommendation],
-        ['Approved Amount:', f"${decision_json.get('approved_amount', 0):,.2f}"],
+        ['Approved Amount:', f"${safe_float(decision_json.get('approved_amount', 0)):,.2f}"],
         ['Deductible Applies:', 'Yes' if decision_json.get('deductible_applies', False) else 'No'],
-        ['Customer Pays:', f"${decision_json.get('customer_pays', 0):,.2f}"],
-        ['Insurance Pays:', f"${decision_json.get('insurance_pays', 0):,.2f}"],
+        ['Customer Pays:', f"${safe_float(decision_json.get('customer_pays', 0)):,.2f}"],
+        ['Insurance Pays:', f"${safe_float(decision_json.get('insurance_pays', 0)):,.2f}"],
     ]
     decision_table = Table(decision_data, colWidths=[2*inch, 4*inch])
     decision_table.setStyle(TableStyle([
@@ -132,54 +186,78 @@ def generate_settlement_pdf(claim_id, customer_data, policy_data, damage_analysi
     elements.append(decision_table)
     elements.append(Spacer(1, 20))
 
-    # Vehicle & Damage Info (if available)
-    if damage_analysis and isinstance(damage_analysis, dict):
-        vehicle_data = damage_analysis.get('vehicle_data', {})
-        if vehicle_data:
-            elements.append(Paragraph("Vehicle Information", heading_style))
-            vehicle_info = [
-                ['VIN:', damage_analysis.get('vehicle_vin', 'N/A')],
-                ['Make/Model:', f"{vehicle_data.get('make', '')} {vehicle_data.get('model', '')}"],
-                ['Year:', str(vehicle_data.get('year_of_manufacture', 'N/A'))],
-            ]
-            vehicle_table = Table(vehicle_info, colWidths=[2*inch, 4*inch])
-            vehicle_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-            ]))
-            elements.append(vehicle_table)
-            elements.append(Spacer(1, 20))
+    # AI-Generated Claim Summary - Comprehensive narrative
+    elements.append(Paragraph("Claim Summary", heading_style))
 
-    # Incident Information (if available)
-    if document_analysis and isinstance(document_analysis, dict):
-        elements.append(Paragraph("Incident Information", heading_style))
-        incident_info = [
-            ['Date:', document_analysis.get('incident_date', 'N/A')],
-            ['Location:', document_analysis.get('incident_location', 'N/A')],
-            ['Police Case:', document_analysis.get('police_case_number', 'N/A')],
-        ]
-        incident_table = Table(incident_info, colWidths=[2*inch, 4*inch])
-        incident_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(incident_table)
-        elements.append(Spacer(1, 20))
+    # Generate AI summary using Bedrock
+    bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 
-    # Detailed Reasoning
-    elements.append(Paragraph("Detailed Reasoning", heading_style))
-    reasoning_text = decision_json.get('detailed_reasoning', 'No detailed reasoning provided.')
-    elements.append(Paragraph(reasoning_text, styles['BodyText']))
+    summary_prompt = f"""Write a professional 2-paragraph summary for an insurance claim settlement report. Use the following data:
+
+Incident Date: {doc_data.get('incident_date', 'N/A')}
+Location: {doc_data.get('incident_location', 'N/A')}
+Police Case: {doc_data.get('police_case_number', 'N/A')}
+Fault Determination: {doc_data.get('fault_determination', 'N/A')}
+Damage Severity: {damage_data.get('severity', 'N/A')}
+Estimated Repair Cost: ${safe_float(damage_data.get('estimated_repair_cost_usd', 0)):,.2f}
+Damage Description: {damage_data.get('damage_summary', '')}
+Crash Cause: {damage_data.get('likely_crash_reason', '')}
+Decision: {decision_json.get('recommendation', 'PENDING')}
+Customer Name: {customer_data.get('first_name', '')} {customer_data.get('last_name', '')}
+
+Write a professional, factual summary explaining what happened and how our AI system analyzed the claim. Make it sound authoritative and show our AI's analytical capabilities."""
+
+    summary_response = bedrock.invoke_model(
+        modelId='us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+        body=json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 500,
+            "temperature": 0.7,
+            "messages": [{"role": "user", "content": summary_prompt}]
+        })
+    )
+
+    summary_result = json.loads(summary_response['body'].read())
+    ai_summary = summary_result['content'][0]['text']
+
+    elements.append(Paragraph(ai_summary, styles['BodyText']))
+    elements.append(Spacer(1, 20))
+
+    # AI-Generated Decision Reasoning
+    elements.append(Paragraph("Decision Reasoning", heading_style))
+
+    reasoning_prompt = f"""Write a detailed 2-paragraph explanation of why this insurance claim decision was made. Use the following information:
+
+Decision: {decision_json.get('recommendation', 'PENDING')}
+Approved Amount: ${safe_float(decision_json.get('approved_amount', 0)):,.2f}
+Deductible: ${safe_float(policy_data.get('deductible_amount', 0)):,.2f}
+Insurance Pays: ${safe_float(decision_json.get('insurance_pays', 0)):,.2f}
+Risk Level: {decision_json.get('risk_assessment', 'N/A').upper()}
+Genuine Factors: {', '.join(decision_json.get('genuine_factors', []))}
+Suspicious Factors: {', '.join(decision_json.get('suspicious_factors', []))}
+
+Write professionally, explaining:
+1. How our AI analyzed the evidence (photos, police report, documents)
+2. Why this specific decision was made based on the factors
+3. What risk assessment criteria were considered
+
+Make it sound like a sophisticated AI reasoning system made this decision."""
+
+    reasoning_response = bedrock.invoke_model(
+        modelId='us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+        body=json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 600,
+            "temperature": 0.7,
+            "messages": [{"role": "user", "content": reasoning_prompt}]
+        })
+    )
+
+    reasoning_result = json.loads(reasoning_response['body'].read())
+    ai_reasoning = reasoning_result['content'][0]['text']
+
+    elements.append(Paragraph(ai_reasoning, styles['BodyText']))
     elements.append(Spacer(1, 12))
-
-    # Risk Assessment
-    if decision_json.get('risk_assessment'):
-        elements.append(Paragraph(f"<b>Risk Assessment:</b> {decision_json.get('risk_assessment', 'N/A').upper()}", styles['BodyText']))
-        elements.append(Spacer(1, 12))
 
     # Next Steps
     if decision_json.get('next_steps'):
@@ -236,15 +314,29 @@ def handle_new_format(event, context):
     damage_analysis = param_dict.get('damage_analysis', {})
     document_analysis = param_dict.get('document_analysis', {})
 
-    # Parse JSON strings if needed
+    # Parse JSON strings if needed (handle both pure JSON and text with embedded JSON)
     if isinstance(customer_data, str):
-        customer_data = json.loads(customer_data)
+        try:
+            customer_data = json.loads(customer_data)
+        except:
+            customer_data = {}
     if isinstance(policy_data, str):
-        policy_data = json.loads(policy_data)
+        try:
+            policy_data = json.loads(policy_data)
+        except:
+            policy_data = {}
     if isinstance(damage_analysis, str):
-        damage_analysis = json.loads(damage_analysis)
+        try:
+            damage_analysis = json.loads(damage_analysis)
+        except:
+            # Keep as text if not valid JSON
+            damage_analysis = {'raw_text': damage_analysis}
     if isinstance(document_analysis, str):
-        document_analysis = json.loads(document_analysis)
+        try:
+            document_analysis = json.loads(document_analysis)
+        except:
+            # Keep as text if not valid JSON
+            document_analysis = {'raw_text': document_analysis}
 
     print(f"Processing claim for customer: {customer_data.get('customer_id', 'unknown')}")
 
@@ -277,14 +369,23 @@ def handle_old_format(event, context):
     http_method = event.get('httpMethod', 'POST')
     parameters = event.get('parameters', [])
 
+    # Helper function to safely parse JSON or keep as dict/text
+    def safe_json_parse(value):
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except:
+                return {'raw_text': value}
+        return value
+
     # Extract all data from parameters
-    customer_data = next((json.loads(p['value']) if isinstance(p['value'], str) else p['value']
+    customer_data = next((safe_json_parse(p['value'])
                          for p in parameters if p['name'] == 'customer_data'), {})
-    policy_data = next((json.loads(p['value']) if isinstance(p['value'], str) else p['value']
+    policy_data = next((safe_json_parse(p['value'])
                        for p in parameters if p['name'] == 'policy_data'), {})
-    damage_analysis = next((json.loads(p['value']) if isinstance(p['value'], str) else p['value']
+    damage_analysis = next((safe_json_parse(p['value'])
                            for p in parameters if p['name'] == 'damage_analysis'), {})
-    document_analysis = next((json.loads(p['value']) if isinstance(p['value'], str) else p['value']
+    document_analysis = next((safe_json_parse(p['value'])
                              for p in parameters if p['name'] == 'document_analysis'), {})
 
     print(f"Processing claim for customer: {customer_data.get('customer_id', 'unknown')}")
@@ -381,11 +482,8 @@ Be thorough, fair, and provide detailed reasoning for your decision."""
         bedrock_result = json.loads(response['body'].read())
         decision_text = bedrock_result['content'][0]['text']
 
-        # Try to parse as JSON
-        try:
-            decision_json = json.loads(decision_text)
-        except:
-            decision_json = {'raw_decision': decision_text}
+        # Extract JSON from the decision text (may contain ```json blocks)
+        decision_json = extract_json_from_text(decision_text)
 
         claim_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
@@ -448,13 +546,22 @@ Be thorough, fair, and provide detailed reasoning for your decision."""
         decision_json['pdf_url'] = pdf_url
         decision_json['claim_id'] = claim_id
 
+        # Create a response message that includes the PDF URL for the agent to return
+        response_message = f"""Claim {claim_id} processed successfully.
+
+Settlement decision generated and saved.
+
+Download your settlement report: {pdf_url}
+
+Claim ID: {claim_id}"""
+
         return {
             'claim_id': claim_id,
             'timestamp': timestamp,
             'decision': decision_json,
             'pdf_url': pdf_url,
             'pdf_s3_key': pdf_key,
-            'message': f'Claim {claim_id} processed successfully',
+            'message': response_message,
             'status': 'Settlement decision generated'
         }
 

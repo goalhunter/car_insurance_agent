@@ -38,7 +38,7 @@ def handle_new_format(event, context):
 
     # Query DynamoDB
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table('customers')
+    table = dynamodb.Table('autosettled-customers')
 
     try:
         response = table.scan(
@@ -57,7 +57,7 @@ def handle_new_format(event, context):
             # Fetch all active policies for this customer
             policies = []
             try:
-                policy_table = dynamodb.Table('policies')
+                policy_table = dynamodb.Table('autosettled-policies')
                 policy_response = policy_table.scan(
                     FilterExpression='customer_id = :cid AND policy_status = :status',
                     ExpressionAttributeValues={
@@ -67,7 +67,7 @@ def handle_new_format(event, context):
                 )
 
                 # For each policy, fetch vehicle information
-                vehicle_table = dynamodb.Table('vehicles')
+                vehicle_table = dynamodb.Table('autosettled-vehicles')
                 for policy in policy_response.get('Items', []):
                     policy_id = policy.get('policy_id')
 
@@ -159,7 +159,7 @@ def handle_old_format(event, context):
 
     # Query DynamoDB
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table('customers')
+    table = dynamodb.Table('autosettled-customers')
 
     try:
         response = table.scan(
@@ -178,7 +178,7 @@ def handle_old_format(event, context):
             # Fetch all active policies for this customer
             policies = []
             try:
-                policy_table = dynamodb.Table('policies')
+                policy_table = dynamodb.Table('autosettled-policies')
                 policy_response = policy_table.scan(
                     FilterExpression='customer_id = :cid AND policy_status = :status',
                     ExpressionAttributeValues={
@@ -188,7 +188,7 @@ def handle_old_format(event, context):
                 )
 
                 # For each policy, fetch vehicle information
-                vehicle_table = dynamodb.Table('vehicles')
+                vehicle_table = dynamodb.Table('autosettled-vehicles')
                 for policy in policy_response.get('Items', []):
                     policy_id = policy.get('policy_id')
 
