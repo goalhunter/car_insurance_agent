@@ -173,14 +173,9 @@ This will:
 - Deploy the Bedrock agent with Claude Nova Pro
 - Configure action groups linked to Lambda functions
 - Output the Agent ID and Alias ID
+- **Automatically update CloudFormation stack** with the agent ID (when you answer "yes")
 
-**Important:** After deployment, update the backend with the agent ID:
-
-```bash
-cd infrastructure
-sam deploy --parameter-overrides BedrockAgentId=<your-agent-id>
-cd ..
-```
+The script will ask if you want to update the stack. Answer **yes** to automatically configure your Lambda functions with the new agent ID.
 
 ### 6. Load Sample Data
 

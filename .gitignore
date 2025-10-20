@@ -18,6 +18,7 @@ synthetic_data_generation/fixed_json.json
 bedrock_agent_config.json
 bedrock_action_groups.json
 action_group_*.json
+infrastructure/bedrock/agent_config.json
 
 # Lambda backup/temp files
 backend/lambda_functions/**/lambda_function_fixed.py

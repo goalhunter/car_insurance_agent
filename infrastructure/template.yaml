@@ -2,6 +2,17 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AutoSettled - AI-Powered Car Insurance Claims Processing
 
+Parameters:
+  BedrockAgentId:
+    Type: String
+    Default: ""
+    Description: "Bedrock Agent ID - Leave empty on first deploy, update after running deploy_agent.py"
+
+  BedrockAgentAliasId:
+    Type: String
+    Default: "TSTALIASID"
+    Description: "Bedrock Agent Alias ID - Use TSTALIASID for testing or your custom alias ID"
+
 Globals:
   Function:
     Runtime: python3.10
@@ -110,8 +121,8 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref DocumentsBucket
           CLAIMS_TABLE: !Ref ClaimsTable
-          BEDROCK_AGENT_ID: 8F18B4HMDE
-          BEDROCK_AGENT_ALIAS_ID: TSTALIASID
+          BEDROCK_AGENT_ID: !Ref BedrockAgentId
+          BEDROCK_AGENT_ALIAS_ID: !Ref BedrockAgentAliasId
       FunctionUrlConfig:
         AuthType: NONE
         Cors:

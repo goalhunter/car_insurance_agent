@@ -153,17 +153,20 @@ def add_lambda_permissions(lambda_arn, agent_id, account_id):
 def create_action_groups(agent_id, action_groups, account_id):
     """Create action groups for the agent"""
     print(f"\n📋 Creating {len(action_groups)} action groups...")
-    
+
+    # Get AWS region
+    region = boto3.Session().region_name or 'us-east-1'
+
     created_count = 0
-    
+
     for ag in action_groups:
         # Skip built-in action groups
         if ag.get('parentActionGroupSignature') == 'AMAZON.UserInput':
             continue
-        
+
         action_group_name = ag['actionGroupName']
         print(f"\n   📌 Creating: {action_group_name}")
-        
+
         # Prepare action group parameters
         ag_params = {
             'agentId': agent_id,
@@ -171,19 +174,30 @@ def create_action_groups(agent_id, action_groups, account_id):
             'actionGroupName': action_group_name,
             'actionGroupState': 'ENABLED'
         }
-        
+
         # Add description if present
         if 'description' in ag and ag['description']:
             ag_params['description'] = ag['description']
-        
-        # Add Lambda executor
-        if 'actionGroupExecutor' in ag and 'lambda' in ag['actionGroupExecutor']:
+
+        # Build Lambda ARN dynamically from function name
+        if 'lambda_function_name' in ag:
+            lambda_function_name = ag['lambda_function_name']
+            lambda_arn = f"arn:aws:lambda:{region}:{account_id}:function:{lambda_function_name}"
+            ag_params['actionGroupExecutor'] = {
+                'lambda': lambda_arn
+            }
+            print(f"      Lambda: {lambda_arn}")
+
+            # Add Lambda permission
+            add_lambda_permissions(lambda_arn, agent_id, account_id)
+        # Fallback: support old format with hardcoded ARN
+        elif 'actionGroupExecutor' in ag and 'lambda' in ag['actionGroupExecutor']:
             lambda_arn = ag['actionGroupExecutor']['lambda']
             ag_params['actionGroupExecutor'] = {
                 'lambda': lambda_arn
             }
             print(f"      Lambda: {lambda_arn}")
-            
+
             # Add Lambda permission
             add_lambda_permissions(lambda_arn, agent_id, account_id)
         
@@ -243,7 +257,7 @@ def create_alias(agent_id, alias_name='prod'):
         print(f"   ⚠️  Error creating alias: {e}")
         return None
 
-def load_config(filename='../infrastructure/bedrock/agent_config.json'):
+def load_config(filename='../infrastructure/bedrock/agent_schema.json'):
     """Load agent configuration from JSON file"""
     print(f"📂 Loading configuration from: {filename}")
 
@@ -254,14 +268,71 @@ def load_config(filename='../infrastructure/bedrock/agent_config.json'):
         return config
     except FileNotFoundError:
         print(f"   ❌ Error: {filename} not found!")
-        print("\n   Please ensure agent_config.json is in infrastructure/bedrock/ directory.")
+        print("\n   Please ensure agent_schema.json is in infrastructure/bedrock/ directory.")
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"   ❌ Error: Invalid JSON in {filename}")
         print(f"   {e}")
         sys.exit(1)
 
-def print_summary(agent_id, alias_id, agent_name):
+def update_cloudformation_stack(agent_id, alias_id, stack_name='autosettled-stack'):
+    """Update CloudFormation stack with agent ID"""
+    print(f"\n🔄 Updating CloudFormation stack with agent ID...")
+
+    cf_client = boto3.client('cloudformation')
+
+    try:
+        # Check if stack exists
+        cf_client.describe_stacks(StackName=stack_name)
+
+        # Update stack with new parameters
+        print(f"   Updating stack: {stack_name}")
+        print(f"   Agent ID: {agent_id}")
+        print(f"   Alias ID: {alias_id}")
+
+        import subprocess
+        import os
+
+        # Change to infrastructure directory
+        original_dir = os.getcwd()
+        infrastructure_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'infrastructure')
+        os.chdir(infrastructure_dir)
+
+        # Run sam deploy with parameters
+        cmd = [
+            'sam', 'deploy',
+            '--parameter-overrides',
+            f'BedrockAgentId={agent_id}',
+            f'BedrockAgentAliasId={alias_id}',
+            '--no-confirm-changeset'
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Change back to original directory
+        os.chdir(original_dir)
+
+        if result.returncode == 0:
+            print(f"   ✅ Stack updated successfully!")
+            return True
+        else:
+            print(f"   ⚠️  Stack update had issues:")
+            print(f"   {result.stderr}")
+            return False
+
+    except cf_client.exceptions.ClientError as e:
+        if 'does not exist' in str(e):
+            print(f"   ⚠️  Stack '{stack_name}' not found. Please deploy infrastructure first:")
+            print(f"      cd infrastructure && sam deploy")
+            return False
+        else:
+            print(f"   ⚠️  Error updating stack: {e}")
+            return False
+    except Exception as e:
+        print(f"   ⚠️  Error: {e}")
+        return False
+
+def print_summary(agent_id, alias_id, agent_name, stack_updated=False):
     """Print deployment summary"""
     print("\n" + "="*60)
     print("✅ DEPLOYMENT COMPLETED SUCCESSFULLY!")
@@ -271,28 +342,20 @@ def print_summary(agent_id, alias_id, agent_name):
     print(f"   Agent ID: {agent_id}")
     if alias_id:
         print(f"   Alias ID: {alias_id}")
-    
+
     print(f"\n🔗 AWS Console Links:")
     print(f"   Agent: https://console.aws.amazon.com/bedrock/home?region=us-east-1#/agents/{agent_id}")
-    
-    print(f"\n📝 Next Steps:")
-    print(f"   1. Test your agent in the AWS Console")
-    print(f"   2. Update your application with the new Agent ID:")
-    print(f"      BEDROCK_AGENT_ID={agent_id}")
-    if alias_id:
-        print(f"      BEDROCK_AGENT_ALIAS_ID={alias_id}")
-    print(f"\n   3. Invoke the agent using AWS SDK:")
-    print(f"""
-      import boto3
-      
-      bedrock_runtime = boto3.client('bedrock-agent-runtime')
-      response = bedrock_runtime.invoke_agent(
-          agentId='{agent_id}',
-          agentAliasId='{alias_id or "TSTALIASID"}',
-          sessionId='unique-session-id',
-          inputText='Hello!'
-      )
-    """)
+
+    if stack_updated:
+        print(f"\n✅ CloudFormation stack updated with agent ID")
+        print(f"   Your Lambda functions now have access to the agent!")
+    else:
+        print(f"\n📝 Next Steps:")
+        print(f"   Update CloudFormation stack with agent ID:")
+        print(f"   cd infrastructure")
+        print(f"   sam deploy --parameter-overrides BedrockAgentId={agent_id} BedrockAgentAliasId={alias_id}")
+
+    print(f"\n🎉 Your agent is ready to use!")
 
 def main():
     print("="*60)
@@ -345,9 +408,19 @@ def main():
     if create_alias_prompt in ['yes', 'y']:
         alias_name = input("   Enter alias name (default: prod): ").strip() or 'prod'
         alias_id = create_alias(agent_id, alias_name)
-    
+
+    # Use TSTALIASID if no alias created
+    if not alias_id:
+        alias_id = 'TSTALIASID'
+
+    # Step 6: Update CloudFormation stack
+    update_stack_prompt = input("\n📢 Update CloudFormation stack with agent ID? (yes/no): ").strip().lower()
+    stack_updated = False
+    if update_stack_prompt in ['yes', 'y']:
+        stack_updated = update_cloudformation_stack(agent_id, alias_id)
+
     # Print summary
-    print_summary(agent_id, alias_id, agent_config['agentName'])
+    print_summary(agent_id, alias_id, agent_config['agentName'], stack_updated)
 
 if __name__ == '__main__':
     try:
