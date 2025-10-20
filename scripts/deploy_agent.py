@@ -243,10 +243,10 @@ def create_alias(agent_id, alias_name='prod'):
         print(f"   ⚠️  Error creating alias: {e}")
         return None
 
-def load_config(filename='agent_config.json'):
+def load_config(filename='../infrastructure/bedrock/agent_config.json'):
     """Load agent configuration from JSON file"""
     print(f"📂 Loading configuration from: {filename}")
-    
+
     try:
         with open(filename, 'r') as f:
             config = json.load(f)
@@ -254,7 +254,7 @@ def load_config(filename='agent_config.json'):
         return config
     except FileNotFoundError:
         print(f"   ❌ Error: {filename} not found!")
-        print("\n   Please ensure agent_config.json is in the same directory.")
+        print("\n   Please ensure agent_config.json is in infrastructure/bedrock/ directory.")
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"   ❌ Error: Invalid JSON in {filename}")

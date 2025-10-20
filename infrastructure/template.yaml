@@ -103,7 +103,7 @@ Resources:
     Properties:
       FunctionName: autosettled-api-orchestrator
       Handler: api_orchestrator.lambda_handler
-      CodeUri: ./lambda_functions/apiOrchestrator/
+      CodeUri: ../backend/lambda_functions/apiOrchestrator/
       Timeout: 900
       MemorySize: 512
       Environment:
@@ -161,7 +161,7 @@ Resources:
     Properties:
       FunctionName: autosettled-file-upload
       Handler: file_upload.lambda_handler
-      CodeUri: ./lambda_functions/fileUpload/
+      CodeUri: ../backend/lambda_functions/fileUpload/
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref DocumentsBucket
@@ -178,7 +178,7 @@ Resources:
     Properties:
       FunctionName: autosettled-customer-verification
       Handler: lambda_function.lambda_handler
-      CodeUri: ./lambda_functions/customerVerification/
+      CodeUri: ../backend/lambda_functions/customerVerification/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref CustomerTable
@@ -200,7 +200,7 @@ Resources:
     Properties:
       FunctionName: autosettled-policy-verification
       Handler: lambda_function.lambda_handler
-      CodeUri: ./lambda_functions/policyVerification/
+      CodeUri: ../backend/lambda_functions/policyVerification/
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref PolicyTable
@@ -220,7 +220,7 @@ Resources:
     Properties:
       FunctionName: autosettled-damage-analysis
       Handler: lambda_function.lambda_handler
-      CodeUri: ./lambda_functions/analyzeDamageImages/
+      CodeUri: ../backend/lambda_functions/analyzeDamageImages/
       Timeout: 900
       Policies:
         - S3ReadPolicy:
@@ -247,7 +247,7 @@ Resources:
     Properties:
       FunctionName: autosettled-document-analysis
       Handler: lambda_function.lambda_handler
-      CodeUri: ./lambda_functions/analyzeDocuments/
+      CodeUri: ../backend/lambda_functions/analyzeDocuments/
       Timeout: 900
       Policies:
         - S3ReadPolicy:
@@ -273,7 +273,7 @@ Resources:
     Properties:
       FunctionName: autosettled-settlement-decision
       Handler: lambda_function.lambda_handler
-      CodeUri: ./lambda_functions/generateSettlementDecision/
+      CodeUri: ../backend/lambda_functions/generateSettlementDecision/
       Timeout: 900
       Layers:
         - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:pdf-generation-layer:2

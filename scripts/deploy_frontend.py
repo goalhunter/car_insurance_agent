@@ -50,7 +50,7 @@ def create_env_file(api_url, upload_url):
 VITE_UPLOAD_API_URL={upload_url}
 """
 
-    env_path = os.path.join('frontend', '.env.production')
+    env_path = os.path.join('..', 'frontend', '.env.production')
 
     try:
         with open(env_path, 'w') as f:
@@ -98,19 +98,19 @@ def main():
 
     # Step 3: Install dependencies
     print("Installing dependencies...")
-    run_command(['npm', 'install'], cwd='frontend')
+    run_command(['npm', 'install'], cwd='../frontend')
     print("   ✅ Dependencies installed")
     print()
 
     # Step 4: Build the frontend
     print("Building frontend...")
-    run_command(['npm', 'run', 'build'], cwd='frontend')
+    run_command(['npm', 'run', 'build'], cwd='../frontend')
     print("   ✅ Build complete")
     print()
 
     # Step 5: Upload to S3
     print("Uploading frontend to S3...")
-    dist_path = os.path.join('frontend', 'dist') + os.sep
+    dist_path = os.path.join('..', 'frontend', 'dist') + os.sep
     s3_path = f's3://{frontend_bucket}/'
 
     run_command([

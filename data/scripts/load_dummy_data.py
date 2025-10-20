@@ -12,7 +12,7 @@ vehicles_table = dynamodb.Table('autosettled-vehicles')
 def load_customers():
     """Load customers from CSV"""
     print("Loading customers...")
-    with open('dummy_data/customers.csv', 'r') as f:
+    with open('../dummy_data/customers.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             # No type conversion - keep everything as string
@@ -23,7 +23,7 @@ def load_customers():
 def load_policies():
     """Load policies from CSV"""
     print("Loading policies...")
-    with open('dummy_data/policies.csv', 'r') as f:
+    with open('../dummy_data/policies.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             # No type conversion - keep everything as string
@@ -34,7 +34,7 @@ def load_policies():
 def load_vehicles():
     """Load vehicles from CSV"""
     print("Loading vehicles...")
-    with open('dummy_data/vehicles.csv', 'r') as f:
+    with open('../dummy_data/vehicles.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             # No type conversion - keep everything as string

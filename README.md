@@ -1,23 +1,56 @@
-# Car Insurance Claims Processing Agent
+# AutoSettled - AI-Powered Car Insurance Claims Processing
 
 An intelligent AI-powered car insurance claims processing system built with AWS Bedrock Agents, Lambda functions, and DynamoDB.
 
+## 📺 Demo Video
+
+[![AutoSettled Demo](https://img.youtube.com/vi/Khdmf830ow8/maxresdefault.jpg)](https://youtu.be/Khdmf830ow8)
+
+**[Watch the full demo on YouTube →](https://youtu.be/Khdmf830ow8)**
+
+![AutoSettled Architecture](docs/assets/car_insurance_claim_agent.png)
+
 ## Overview
 
-This project implements a conversational AI agent that guides users through a 5-step car insurance claim filing process:
+AutoSettled implements a conversational AI agent that guides users through a 5-step car insurance claim filing process:
 
 1. **Customer Verification** - Verify identity using name and email
 2. **Policy Verification** - Validate policy status and coverage
-3. **Damage Analysis** - Analyze damage images and match vehicle details
+3. **Damage Analysis** - Analyze damage images using AI vision
 4. **Document Analysis** - Process police reports and repair estimates
 5. **Settlement Decision** - Generate comprehensive claim decision with reasoning
+
+## Features
+
+### Intelligent Verification
+- Customer identity validation via DynamoDB lookup
+- Policy status and expiration checking
+- Customer-policy relationship validation
+
+### AI-Powered Damage Analysis
+- Visual analysis of car damage using Claude 4.5 Sonnet vision
+- Vehicle matching (compares images to policy vehicle details)
+- Estimated repair cost calculation
+- Crash reason analysis and damage severity assessment
+
+### Document Processing
+- Automated text extraction
+- Police report and repair estimate analysis
+- Cross-verification between documents and images
+- Fraud indicator detection
+
+### Comprehensive Settlement Decision
+- Multi-factor claim analysis with risk assessment
+- Genuine vs suspicious factors identification
+- Detailed reasoning with supporting evidence
+- Approval/denial recommendations with cost breakdown
 
 ## Architecture
 
 ```
 ┌─────────────────────────────┐
 │   Bedrock Agent             │
-│   (Claude 3.7 Sonnet)       │
+│   (Claude Nova Pro)         │
 └──────────┬──────────────────┘
            │
            ├──► customerVerification (Lambda)
@@ -37,255 +70,227 @@ This project implements a conversational AI agent that guides users through a 5-
            └──────────────────────┘
 ```
 
-## Features
-
-### 🔍 Intelligent Verification
-- Customer identity validation via DynamoDB lookup
-- Policy status and expiration checking
-- Customer-policy relationship validation
-
-### 🚗 AI-Powered Damage Analysis
-- Visual analysis of car damage using Claude 3.5 Sonnet vision
-- Vehicle matching (compares images to policy vehicle details)
-- Estimated repair cost calculation
-- Crash reason analysis
-- Damage severity assessment
-
-### 📄 Document Processing
-- Automated text extraction using AWS Textract
-- Police report analysis
-- Repair estimate validation
-- Cross-verification between documents and images
-- Fraud indicator detection
-
-### 🤖 Comprehensive Settlement Decision
-- Multi-factor claim analysis
-- Risk assessment (low/medium/high)
-- Genuine vs suspicious factors identification
-- Detailed reasoning with supporting evidence
-- Approval/denial recommendations
-- Cost breakdown (customer pays vs insurance pays)
-
 ## Project Structure
 
 ```
-car_insurance_agent/
-├── lambda_functions/           # AWS Lambda function code
-│   ├── customerVerification/
-│   ├── policyVerification/
-│   ├── analyzeDamageImages/
-│   ├── analyzeDocuments/
-│   └── generateSettlementDecision/
-├── synthetic_data_generation/  # Data generation and migration scripts
-│   ├── generate_and_migrate.py
-│   └── insurance_policy_data.py
-├── update_lambdas.py          # Script to deploy Lambda functions
-├── LAMBDA_FIX_GUIDE.md        # Lambda troubleshooting guide
-└── README.md
+autosettled/
+├── README.md                           # Project documentation
+├── requirements.txt                    # Python dependencies
+│
+├── scripts/                            # Deployment scripts
+│   ├── deploy_agent.py                # Bedrock agent deployment
+│   └── deploy_frontend.py             # Frontend deployment
+│
+├── infrastructure/                     # Infrastructure as Code
+│   ├── template.yaml                  # SAM/CloudFormation template
+│   ├── samconfig.toml                 # SAM configuration
+│   └── bedrock/
+│       └── agent_config.json          # Bedrock agent configuration
+│
+├── backend/                            # Backend Lambda functions
+│   ├── lambda_functions/
+│   │   ├── apiOrchestrator/
+│   │   ├── customerVerification/
+│   │   ├── policyVerification/
+│   │   ├── analyzeDamageImages/
+│   │   ├── analyzeDocuments/
+│   │   ├── generateSettlementDecision/
+│   │   └── fileUpload/
+│   └── layers/                        # Lambda layers
+│       └── pdf_generation/
+│
+├── frontend/                           # React web application
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+└── data/                               # Data management
+    ├── dummy_data/                    # Sample data CSVs
+    └── scripts/
+        └── load_dummy_data.py         # Data loading utility
 ```
 
-## Setup
+## Prerequisites
 
-### Prerequisites
-
-- AWS Account with access to:
-  - Amazon Bedrock (Claude 3.7 Sonnet and Claude 3.5 Sonnet)
+- **AWS Account** with access to:
+  - Amazon Bedrock (Claude Nova Pro & Claude Models)
   - AWS Lambda
   - Amazon DynamoDB
   - Amazon S3
-  - Amazon Textract
-- Python 3.8+
-- AWS CLI configured
+  - CloudFront
+- **Python 3.10+**
+- **Node.js 18+** (for frontend)
+- **AWS CLI** configured with credentials
+- **AWS SAM CLI** installed
 
-### Installation
+## Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd car_insurance_agent
-   ```
+### 1. Clone the Repository
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv aws_env
-   source aws_env/Scripts/activate  # Windows
-   # or
-   source aws_env/bin/activate      # Linux/Mac
-   ```
+```bash
+git clone <your-repo-url>
+cd autosettled
+```
 
-3. **Install dependencies**
-   ```bash
-   pip install boto3 pandas
-   pip install awscli
-   ```
+### 2. Configure AWS Credentials
 
-4. **Configure AWS credentials**
-   ```bash
-   aws configure
-   # Enter your AWS Access Key ID, Secret Access Key, and region
-   ```
+```bash
+aws configure
+# Enter your AWS Access Key ID, Secret Access Key, and region (us-east-1 recommended)
+```
 
-### Database Setup
+### 3. Install Python Dependencies
 
-1. **Create DynamoDB tables**
-   - `customers` (partition key: `customer_id`)
-   - `policies` (partition key: `policy_id`)
-   - `vehicles` (partition key: `vehicle_id`)
-   - `claims-records` (partition key: `claim_id`)
+```bash
+pip install -r requirements.txt
+```
 
-2. **Generate and load synthetic data**
-   ```bash
-   python synthetic_data_generation/generate_and_migrate.py
-   ```
+### 4. Deploy Backend Infrastructure
 
-### Lambda Functions Deployment
+```bash
+cd infrastructure
+sam build
+sam deploy --guided
+cd ..
+```
 
-1. **Deploy all Lambda functions**
-   ```bash
-   python update_lambdas.py
-   ```
+On first deploy, you'll be prompted for:
+- Stack name (default: `autosettled-stack`)
+- AWS Region (default: `us-east-1`)
+- Confirm changes before deploy
+- Allow SAM CLI IAM role creation
 
-2. **Configure Lambda permissions**
-   - Add DynamoDB read/write permissions
-   - Add S3 read permissions
-   - Add Bedrock invoke permissions
-   - Add Textract permissions
+### 5. Deploy Bedrock Agent
 
-### Bedrock Agent Setup
+```bash
+cd scripts
+python deploy_agent.py
+cd ..
+```
 
-1. **Create a Bedrock Agent**
-   - Model: Claude 3.7 Sonnet
-   - Instructions: Copy from the agent configuration
+This will:
+- Create IAM role for the agent
+- Deploy the Bedrock agent with Claude Nova Pro
+- Configure action groups linked to Lambda functions
+- Output the Agent ID and Alias ID
 
-2. **Create Action Groups**
-   - `verifyCustomer` → customerVerification Lambda
-   - `verifyPolicy` → policyVerification Lambda
-   - `analyzeDamageImages` → analyzeDamageImages Lambda
-   - `analyzeDocuments` → analyzeDocuments Lambda
-   - `generateSettlement` → generateSettlementDecision Lambda
+**Important:** After deployment, update the backend with the agent ID:
 
-3. **Test the agent**
+```bash
+cd infrastructure
+sam deploy --parameter-overrides BedrockAgentId=<your-agent-id>
+cd ..
+```
+
+### 6. Load Sample Data
+
+```bash
+cd data/scripts
+python load_dummy_data.py
+cd ../..
+```
+
+### 7. Deploy Frontend
+
+```bash
+cd scripts
+python deploy_frontend.py
+cd ..
+```
+
+This will:
+- Build the React application
+- Upload to S3
+- Deploy via CloudFront
+- Output the frontend URL
 
 ## Usage
 
-### Example Conversation Flow
+Access the frontend URL provided after deployment. The application provides a chat interface to:
 
-```
-User: I want to file a claim
+1. Enter customer details for verification
+2. Select or enter policy information
+3. Upload damage photos
+4. Upload police report and repair estimate
+5. Receive AI-generated settlement decision
 
-Agent: Hello! I'll help you file a car insurance claim. Let's start with
-       customer verification. Please provide:
-       - First name
-       - Last name
-       - Email address
+## Technology Stack
 
-User: Michael, Johnson, michael.johnson@example.com
-
-Agent: Customer verified! Now, please provide your policy ID.
-
-User: f8c3de3d-1d35-4b77-9b4e-8f1c8b8e1f2a
-
-Agent: Policy verified! Please upload damage images to S3 and provide:
-       - S3 URIs for images
-       - Vehicle ID
-
-User: s3://bucket/damage1.jpg, vehicle-id-123
-
-Agent: Damage analyzed! Please provide:
-       - Police report S3 URI
-       - Repair estimate S3 URI
-
-User: s3://bucket/police.pdf, s3://bucket/estimate.pdf
-
-Agent: All documents analyzed! Generating settlement decision...
-
-[Agent provides comprehensive decision with approval/denial, reasoning,
- and next steps]
-```
-
-## Key Technologies
-
-- **AWS Bedrock** - AI foundation models (Claude 3.5 & 3.7 Sonnet)
-- **AWS Lambda** - Serverless compute
+- **AWS Bedrock** - AI foundation models (Claude Nova Pro & Claude 3.5 Sonnet)
+- **AWS SAM** - Serverless Application Model for IaC
+- **AWS Lambda** - Serverless compute (Python 3.10)
 - **Amazon DynamoDB** - NoSQL database
 - **Amazon S3** - Object storage
-- **Amazon Textract** - Document text extraction
-- **Python** - Backend logic
-- **Boto3** - AWS SDK for Python
+- **Amazon CloudFront** - CDN for frontend
+- **React + TypeScript** - Frontend framework
+- **Vite** - Frontend build tool
 
-## Lambda Function Details
+## Configuration
 
-### customerVerification
-- Validates customer identity against DynamoDB
-- Returns customer data if verified
+### Environment Variables
 
-### policyVerification
-- Checks policy status, expiration, and customer ownership
-- Validates policy is active and unexpired
+Copy `.env.example` to `.env` and configure:
 
-### analyzeDamageImages
-- Downloads images from S3
-- Analyzes damage using Claude vision
-- Verifies vehicle matches policy
-- Estimates repair costs
+```bash
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=<your-account-id>
+```
 
-### analyzeDocuments
-- Extracts text using Textract
-- Analyzes police reports and estimates
-- Cross-verifies with damage analysis
-- Identifies inconsistencies
+### Region Configuration
 
-### generateSettlementDecision
-- Synthesizes all claim data
-- Performs risk assessment
-- Generates detailed reasoning
-- Provides approval/denial recommendation
-- Saves to claims-records table
+The default region is `us-east-1`. To deploy to a different region:
 
-## Security Considerations
+```bash
+cd infrastructure
+sam deploy --region <your-region>
+```
 
-⚠️ **Important**: Never commit sensitive data to the repository!
+**Note:** Ensure Claude models are available in your chosen region.
 
-- `.env` files are git-ignored
-- AWS credentials should only be in AWS CLI config
-- Generated CSV/JSON data is git-ignored
-- Use IAM roles for Lambda functions in production
+## Development
 
-## Troubleshooting
+### Running Frontend Locally
 
-See [LAMBDA_FIX_GUIDE.md](LAMBDA_FIX_GUIDE.md) for common issues and fixes.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### Common Issues
+### Testing Lambda Functions Locally
 
-1. **"functionResponse object is required"**
-   - Lambda functions now handle both old and new Bedrock Agent formats
-   - Ensure latest code is deployed
+```bash
+cd infrastructure
+sam local invoke <FunctionName> -e events/test-event.json
+```
 
-2. **DynamoDB Permission Errors**
-   - Add appropriate IAM policies to Lambda execution roles
+### Updating Lambda Code
 
-3. **Bedrock Access Denied**
-   - Enable model access in AWS Bedrock console
-   - Add bedrock:InvokeModel permission
+After modifying Lambda functions:
 
-## Future Enhancements
+```bash
+cd infrastructure
+sam build
+sam deploy
+```
 
-- [ ] PDF report generation for claims
-- [ ] Email notifications to customers
-- [ ] Integration with payment systems
-- [ ] Multi-language support
-- [ ] Mobile app integration
-- [ ] Real-time claim status tracking
-- [ ] Analytics dashboard
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
 ## License
 
 This project is provided as-is for educational and demonstration purposes.
 
-## Contributing
+## Acknowledgments
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Built with AWS Bedrock Agents and Claude AI by Anthropic.
 
-## Author
+---
 
-Built with AWS Bedrock Agents and Claude AI
+For questions or issues, please open a GitHub issue.

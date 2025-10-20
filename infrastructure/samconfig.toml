@@ -8,4 +8,5 @@ region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 resolve_s3 = true
+template_file = "template.yaml"
 image_repositories = []

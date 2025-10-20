@@ -20,11 +20,11 @@ bedrock_action_groups.json
 action_group_*.json
 
 # Lambda backup/temp files
-lambda_functions/**/lambda_function_fixed.py
+backend/lambda_functions/**/lambda_function_fixed.py
 
 # Lambda deployment packages (zip files)
-lambda_functions/**/*.zip
-lambda_layers/**/*.zip
+backend/lambda_functions/**/*.zip
+backend/layers/**/*.zip
 
 # Python cache
 __pycache__/
