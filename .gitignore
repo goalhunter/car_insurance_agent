@@ -22,6 +22,10 @@ action_group_*.json
 # Lambda backup/temp files
 lambda_functions/**/lambda_function_fixed.py
 
+# Lambda deployment packages (zip files)
+lambda_functions/**/*.zip
+lambda_layers/**/*.zip
+
 # Python cache
 __pycache__/
 *.pyc
@@ -34,3 +38,12 @@ __pycache__/
 .idea/
 *.swp
 *.swo
+
+# AWS SAM build artifacts
+.aws-sam/
+
+# Claude Code
+.claude/
+
+deploy_fronetend.sh
+deploy_frontend.bat

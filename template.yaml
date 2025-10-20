@@ -276,7 +276,7 @@ Resources:
       CodeUri: ./lambda_functions/generateSettlementDecision/
       Timeout: 900
       Layers:
-        - arn:aws:lambda:us-east-1:986341371998:layer:pdf-generation-layer:2
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:pdf-generation-layer:2
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ClaimsTable
